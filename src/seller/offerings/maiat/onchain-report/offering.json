@@ -1,5 +1,5 @@
 {
-  "name": "On-Chain Report",
+  "name": "onchain_report",
   "description": "Comprehensive 2-in-1 on-chain analytics. Pass a Token address for Due Diligence (holders, honeypot risk, market health) or a Wallet address for KOL Profiling (reputation, interaction history).",
   "jobFee": 1.0,
   "jobFeeType": "fixed",
