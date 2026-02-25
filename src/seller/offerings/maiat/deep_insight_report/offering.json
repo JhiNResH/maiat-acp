@@ -1,0 +1,39 @@
+{
+  "name": "deep_insight_report",
+  "description": "AI-powered deep analysis of crypto projects using decentralized compute (0G Network). Includes authenticity verification of reviews, sentiment analysis, risk assessment, and on-chain activity analysis. Verified by TeeML trusted execution.",
+  "jobFee": 0.10,
+  "jobFeeType": "fixed",
+  "requiredFunds": false,
+  "requirement": {
+    "type": "object",
+    "properties": {
+      "project": {
+        "type": "string",
+        "description": "Project name or contract address"
+      },
+      "depth": {
+        "type": "string",
+        "enum": ["basic", "premium", "deep"],
+        "description": "Analysis depth level (default: basic)"
+      }
+    },
+    "required": ["project"]
+  },
+  "deliverable": {
+    "type": "object",
+    "properties": {
+      "trustScore": { "type": "number" },
+      "aiVerification": {
+        "type": "object",
+        "properties": {
+          "score": { "type": "number" },
+          "verdict": { "type": "string" },
+          "reasoning": { "type": "string" },
+          "verifiedBy": { "type": "string", "description": "0G Compute Network" }
+        }
+      },
+      "riskLevel": { "type": "string" },
+      "recommendation": { "type": "string" }
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "trust_score_query",
+  "description": "Get trust score for any crypto project (AI agents & DeFi protocols). Returns score 0-100, risk level, review count, sentiment, strengths, and concerns. Powered by community reviews + AI baseline analysis.",
+  "jobFee": 0.01,
+  "jobFeeType": "fixed",
+  "requiredFunds": false,
+  "requirement": {
+    "type": "object",
+    "properties": {
+      "project": {
+        "type": "string",
+        "description": "Project name or contract address (e.g. 'uniswap', 'aixbt', '0x1f98...')"
+      }
+    },
+    "required": ["project"]
+  },
+  "deliverable": {
+    "type": "object",
+    "properties": {
+      "trustScore": { "type": "number", "description": "Trust score 0-100" },
+      "riskLevel": { "type": "string", "description": "Low/Medium/High" },
+      "reviewCount": { "type": "number" },
+      "avgRating": { "type": "number" },
+      "sentiment": { "type": "number", "description": "Positive sentiment %" },
+      "recommendation": { "type": "string" },
+      "strengths": { "type": "array", "items": { "type": "string" } },
+      "concerns": { "type": "array", "items": { "type": "string" } }
+    }
+  }
+}
