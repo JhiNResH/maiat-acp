@@ -39,16 +39,26 @@ export async function executeJob(
   const rawText = project || requirements.message || requirements.promo_message || Object.values(requirements).join(" ");
   
   if (rawText && rawText.length > 30) {
-    // Attempt to extract the first word or everything before a dash as the project name
-    const match = rawText.match(/^([A-Za-z0-9]+)(?:\s+(?:—|-|\|)|\s+)/);
-    if (match && match[1]) {
-      project = match[1];
+    // 1. First, check if there's an EVM address inside the long text (Very common)
+    const addressMatch = rawText.match(/(0x[a-fA-F0-9]{40})/);
+    if (addressMatch && addressMatch[1]) {
+      project = addressMatch[1];
     } else {
-      // Fallback: just take the first word
-      project = rawText.split(" ")[0] || rawText;
+      // 2. Attempt to extract the first word or everything before a dash as the project name
+      const match = rawText.match(/^([A-Za-z0-9]+)(?:\s+(?:—|-|\|)|\s+)/);
+      if (match && match[1]) {
+        project = match[1];
+      } else {
+        // 3. Fallback: just take the first word
+        project = rawText.split(" ")[0] || rawText;
+      }
     }
   } else if (!project && rawText) {
     project = rawText;
+  }
+
+  if (!project || project.trim() === "undefined") {
+     throw new Error("Missing parameter. Could not resolve project name or address from input.");
   }
 
   // Query Maiat's trust score API
