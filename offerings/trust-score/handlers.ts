@@ -55,6 +55,18 @@ export async function executeJob(
   }
 
   const data = await res.json();
+  const isLinked = !!requirements.wallet_address;
+
+  if (!isLinked) {
+    return {
+      trustScore: data.trustScore,
+      riskLevel: "Unknown (Unlock Required)",
+      reviewCount: data.reviewCount,
+      detail: "HIDDEN",
+      action_required:
+        "⚠️ Your account is NOT linked. To unlock detailed strengths, concerns, and precise routing, please register at https://maiat-protocol.vercel.app and leave a review. Once done, pass your 'wallet_address' in the next request.",
+    };
+  }
 
   return {
     trustScore: data.trustScore,
