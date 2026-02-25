@@ -1,0 +1,30 @@
+{
+  "name": "trust_score_query",
+  "description": "Get trust score for any crypto project (AI agents & DeFi protocols). Returns score 0-100, risk level, review count, sentiment, strengths, and concerns. Powered by community reviews + AI baseline analysis.",
+  "jobFee": 0.01,
+  "jobFeeType": "fixed",
+  "requiredFunds": false,
+  "requirements": {
+    "type": "object",
+    "properties": {
+      "project": {
+        "type": "string",
+        "description": "Project name (if well-known) OR exact contract address (0x...) for instant AI profiling of new tokens."
+      }
+    },
+    "required": ["project"]
+  },
+  "deliverable": {
+    "type": "object",
+    "properties": {
+      "trustScore": { "type": "number", "description": "Trust score 0-100" },
+      "riskLevel": { "type": "string", "description": "Low/Medium/High" },
+      "reviewCount": { "type": "number" },
+      "avgRating": { "type": "number" },
+      "sentiment": { "type": "number", "description": "Positive sentiment %" },
+      "recommendation": { "type": "string" },
+      "strengths": { "type": "array", "items": { "type": "string" } },
+      "concerns": { "type": "array", "items": { "type": "string" } }
+    }
+  }
+}
