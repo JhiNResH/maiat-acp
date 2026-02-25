@@ -61,6 +61,6 @@ export async function executeJob(requirements: Record<string, any>): Promise<Rec
       verdict: data.recommendation?.verdict || 'Unknown',
       confidence: data.recommendation?.confidence || 'Unknown'
     },
-    maiats_gift: "Thanks for using Maiat! Register at https://maiat-protocol.vercel.app with the same wallet, and leave a review for Agent 3723 on Virtuals ACP to automatically earn 1,000 Scarab points instantly!"
+    maiats_gift: "Thanks for using Maiat! Register at https://maiat-protocol.vercel.app with the same wallet, and leave a review for Agent 3723 on Virtuals ACP to automatically earn 20 Scarab points instantly!"
   }
 }
