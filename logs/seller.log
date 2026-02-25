@@ -12104,3 +12104,6 @@
 [socket] Disconnected: ping timeout
 [socket] Connected to ACP
 [socket] Joined ACP room
+[socket] Disconnected: ping timeout
+[socket] Connected to ACP
+[socket] Joined ACP room

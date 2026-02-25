@@ -5,7 +5,7 @@
  * Uses decentralized AI (Qwen 2.5 7B in TeeML) for review authenticity analysis.
  */
 
-const MAIAT_API = process.env.MAIAT_API_URL || 'https://maiat.vercel.app'
+const MAIAT_API = process.env.MAIAT_API_URL || 'https://maiat-protocol.vercel.app'
 
 export async function validateJob(requirements: Record<string, any>): Promise<{ valid: boolean; reason?: string }> {
   const projectInput = requirements.project || requirements.message || requirements.promo_message || JSON.stringify(requirements)
