@@ -18,23 +18,8 @@ const MAIAT_API =
 export function validateRequirements(
   requirements: Record<string, any>,
 ): ValidationResult {
-  const projectInput =
-    requirements.project ||
-    requirements.message ||
-    requirements.promo_message ||
-    JSON.stringify(requirements);
-
-  if (
-    !projectInput ||
-    typeof projectInput !== "string" ||
-    projectInput.trim().length === 0
-  ) {
-    return {
-      valid: false,
-      reason:
-        "Missing project name, message, or identifiable string to analyze",
-    };
-  }
+  // Accept everything — even empty requirements.
+  // executeJob handles gracefully with a helpful response.
   return { valid: true };
 }
 
@@ -46,7 +31,6 @@ export function requestPayment(requirements: Record<string, any>): string {
 }
 
 // ── Execution ─────────────────────────────────────────────────────────────────
-// NOTE: must return ExecuteJobResult — deliverable wraps the result as JSON string.
 export async function executeJob(
   requirements: Record<string, any>,
 ): Promise<ExecuteJobResult> {
@@ -60,12 +44,10 @@ export async function executeJob(
     Object.values(requirements).join(" ");
 
   if (rawText && rawText.length > 30) {
-    // 1. Extract EVM address if present
     const addressMatch = rawText.match(/(0x[a-fA-F0-9]{40})/);
     if (addressMatch?.[1]) {
       project = addressMatch[1];
     } else {
-      // 2. Extract first word before separator
       const match = rawText.match(/^([A-Za-z0-9]+)(?:\s+(?:—|-|\|)|\s+)/);
       project = match?.[1] ?? rawText.split(" ")[0] ?? rawText;
     }
@@ -73,10 +55,17 @@ export async function executeJob(
     project = rawText;
   }
 
-  if (!project || String(project).trim() === "undefined") {
-    throw new Error(
-      "Missing parameter. Could not resolve project name or address from input.",
-    );
+  // Graceful fallback — don't throw, return a helpful response so job completes
+  if (!project || String(project).trim() === "" || String(project).trim() === "undefined") {
+    const result = {
+      trustScore: null,
+      riskLevel: "Unknown",
+      reviewCount: 0,
+      recommendation: "Please provide a project name or 0x contract address.",
+      usage: 'Pass { project: "AIXBT" } or { project: "0x..." } as requirements.',
+      maiats_gift: "Maiat scores 10,000+ DeFi protocols and AI agents. Try: AIXBT, Virtuals, HeyAnon, Brian AI, Ethy, Wayfinder.",
+    };
+    return { deliverable: JSON.stringify(result) };
   }
 
   const url = `${MAIAT_API}/api/trust-score?slug=${encodeURIComponent(String(project).substring(0, 100))}`;
@@ -85,9 +74,13 @@ export async function executeJob(
   if (!res.ok) {
     const err: any = await res.json().catch(() => ({}));
     if (err.error === "Project not found" || res.status === 404) {
-      throw new Error(
-        `Project '${project}' is not indexed in Maiat. To instantly generate a Trust Score for an unknown token, provide its exact 0x contract address.`,
-      );
+      const result = {
+        trustScore: null,
+        riskLevel: "Unknown",
+        reviewCount: 0,
+        recommendation: `'${project}' is not yet indexed. Submit a review at https://maiat-protocol.vercel.app to build its trust profile. For unknown tokens, provide the exact 0x contract address.`,
+      };
+      return { deliverable: JSON.stringify(result) };
     }
     throw new Error(err.error || `Trust score query failed (${res.status})`);
   }
