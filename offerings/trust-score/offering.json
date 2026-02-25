@@ -9,7 +9,7 @@
     "properties": {
       "project": {
         "type": "string",
-        "description": "Project name or contract address (e.g. 'uniswap', 'aixbt', '0x1f98...')"
+        "description": "Project name (if well-known) OR exact contract address (0x...) for instant AI profiling of new tokens."
       }
     },
     "required": ["project"]
