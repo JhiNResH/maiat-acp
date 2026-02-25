@@ -37,8 +37,8 @@ export async function executeJob(requirements: Record<string, any>): Promise<Rec
   if (tokenRes.ok) {
     const tokenData = await tokenRes.json();
     
-    // If the API explicitly says it's a token or a known contract
-    if (tokenData.isToken || tokenData.type === 'CONTRACT' || tokenData.type === 'TOKEN') {
+    // If the API explicitly says it's a token, a known contract, or a known protocol
+    if (tokenData.isToken || tokenData.type === 'CONTRACT' || tokenData.type === 'TOKEN' || tokenData.type === 'PROTOCOL') {
       if (!isLinked) {
         return {
           report_type: 'Token/Contract',
