@@ -1,0 +1,34 @@
+{
+  "name": "On-Chain Report",
+  "description": "Comprehensive 2-in-1 on-chain analytics. Pass a Token address for Due Diligence (holders, honeypot risk, market health) or a Wallet address for KOL Profiling (reputation, interaction history).",
+  "jobFee": 1.0,
+  "jobFeeType": "fixed",
+  "requiredFunds": false,
+  "requirements": {
+    "type": "object",
+    "properties": {
+      "address": {
+        "type": "string",
+        "description": "Token contract address or human wallet address"
+      },
+      "wallet_address": {
+        "type": "string",
+        "description": "The connected buyer's wallet address (Optional but unlocks full features)"
+      }
+    },
+    "required": ["address"]
+  },
+  "deliverable": {
+    "type": "object",
+    "properties": {
+      "report_type": { "type": "string", "enum": ["Token", "Wallet"] },
+      "target": { "type": "string" },
+      "onChainData": {
+        "type": "object",
+        "description": "Dynamic data object populated with either token metrics or wallet reputation."
+      },
+      "maiats_gift": { "type": "string" },
+      "action_required": { "type": "string" }
+    }
+  }
+}
