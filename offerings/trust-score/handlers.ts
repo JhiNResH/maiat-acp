@@ -35,13 +35,23 @@ export async function executeJob(
 ): Promise<Record<string, unknown>> {
   let project = requirements.project;
 
-  // If project is not explicitly provided, try to extract from message or promo_message
-  if (!project) {
-    const rawText =
-      requirements.message ||
-      requirements.promo_message ||
-      Object.values(requirements).join(" ");
-    // Simple heuristic: grab the first word or handle it as a raw string to analyze
+  // If project is not explicitly provided or is a long promotional text, try to extract the core identifier
+  const rawText =
+    project ||
+    requirements.message ||
+    requirements.promo_message ||
+    Object.values(requirements).join(" ");
+
+  if (rawText && rawText.length > 30) {
+    // Attempt to extract the first word or everything before a dash as the project name
+    const match = rawText.match(/^([A-Za-z0-9]+)(?:\s+(?:—|-|\|)|\s+)/);
+    if (match && match[1]) {
+      project = match[1];
+    } else {
+      // Fallback: just take the first word
+      project = rawText.split(" ")[0] || rawText;
+    }
+  } else if (!project && rawText) {
     project = rawText;
   }
 
