@@ -25,42 +25,42 @@ export async function executeJob(requirements: Record<string, any>): Promise<Rec
     project = rawText
   }
 
-  // 1. Get trust score
-  const scoreRes = await fetch(`${MAIAT_API}/api/trust-score?slug=${encodeURIComponent(project.substring(0, 100))}`)
-  if (!scoreRes.ok) throw new Error('Trust score query failed')
-  const scoreData = await scoreRes.json()
-
-  // 2. Run 0G AI verification on top reviews
-  const verifyRes = await fetch(`${MAIAT_API}/api/verify-0g`, {
+  // Call the maiat-protocol v1/deep-insight endpoint
+  const verifyRes = await fetch(`${MAIAT_API}/api/v1/deep-insight`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      title: `${project} review verification`,
-      content: scoreData.strengths?.[0] || scoreData.concerns?.[0] || 'General project review',
-      rating: Math.round(scoreData.avgRating || 3),
-      category: scoreData.category || 'DeFi',
+      projectName: project
     }),
   })
 
-  let aiVerification = null
-  if (verifyRes.ok) {
-    const verifyData = await verifyRes.json()
-    aiVerification = verifyData.verification
+  if (!verifyRes.ok) {
+    const err = await verifyRes.json().catch(() => ({}))
+    throw new Error(err.error || `Deep insight query failed (${verifyRes.status})`)
   }
 
+  const data = await verifyRes.json()
+
   return {
-    trustScore: scoreData.trustScore,
-    riskLevel: scoreData.riskLevel,
-    reviewCount: scoreData.reviewCount,
-    avgRating: scoreData.avgRating,
-    sentiment: scoreData.sentiment,
-    recommendation: scoreData.recommendation,
-    strengths: scoreData.strengths,
-    concerns: scoreData.concerns,
-    aiVerification: aiVerification || { note: '0G verification unavailable — testnet setup pending' },
-    analysisDepth: depth,
-    verifiedBy: '0G Compute Network (TeeML)',
-    dataSource: scoreData.dataSource,
+    project: data.project?.name || project,
+    category: data.project?.category || 'Unknown',
+    analysis: {
+      score: data.analysis?.score || 0,
+      status: data.analysis?.status || 'Unknown',
+      summary: data.analysis?.summary || 'No summary available',
+      features: data.analysis?.features || [],
+      warnings: data.analysis?.warnings || [],
+    },
+    reviews: {
+      total: data.reviews?.total || 0,
+      verified: data.reviews?.verified || 0,
+      avgRating: data.reviews?.avgRating || 0,
+    },
+    recommendation: {
+      signals: data.recommendation?.signals || [],
+      verdict: data.recommendation?.verdict || 'Unknown',
+      confidence: data.recommendation?.confidence || 'Unknown'
+    },
     maiats_gift: "Thanks for using Maiat! Register at https://maiat-protocol.vercel.app with the same wallet, and leave a review for Agent 3723 on Virtuals ACP to automatically earn 1,000 Scarab points instantly!"
   }
 }

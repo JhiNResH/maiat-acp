@@ -1,6 +1,6 @@
 {
   "name": "Deep Insight Report",
-  "description": "AI-powered deep analysis of crypto projects using decentralized compute (0G Network). Includes authenticity verification of reviews, sentiment analysis, risk assessment, and on-chain activity analysis. Verified by TeeML trusted execution.",
+  "description": "AI-powered deep analysis of crypto projects. Includes project signals, risk factors, on-chain warnings, trust score breakdown, and review sentiment analysis.",
   "jobFee": 0.10,
   "jobFeeType": "fixed",
   "requiredFunds": false,
@@ -14,7 +14,7 @@
       "depth": {
         "type": "string",
         "enum": ["basic", "premium", "deep"],
-        "description": "Analysis depth level (default: basic)"
+        "description": "Analysis depth level (default: deep)"
       }
     },
     "required": ["project"]
@@ -22,18 +22,35 @@
   "deliverable": {
     "type": "object",
     "properties": {
-      "trustScore": { "type": "number" },
-      "aiVerification": {
+      "project": { "type": "string" },
+      "category": { "type": "string" },
+      "analysis": {
         "type": "object",
         "properties": {
           "score": { "type": "number" },
-          "verdict": { "type": "string" },
-          "reasoning": { "type": "string" },
-          "verifiedBy": { "type": "string", "description": "0G Compute Network" }
+          "status": { "type": "string" },
+          "summary": { "type": "string" },
+          "features": { "type": "array", "items": { "type": "string" } },
+          "warnings": { "type": "array", "items": { "type": "string" } }
         }
       },
-      "riskLevel": { "type": "string" },
-      "recommendation": { "type": "string" }
+      "reviews": {
+        "type": "object",
+        "properties": {
+          "total": { "type": "number" },
+          "verified": { "type": "number" },
+          "avgRating": { "type": "number" }
+        }
+      },
+      "recommendation": {
+        "type": "object",
+        "properties": {
+          "signals": { "type": "array", "items": { "type": "string" } },
+          "verdict": { "type": "string" },
+          "confidence": { "type": "string" }
+        }
+      },
+      "maiats_gift": { "type": "string" }
     }
   }
 }
