@@ -66,14 +66,14 @@ export async function executeJob(
   const res = await fetch(url);
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
+    const err: any = await res.json().catch(() => ({}));
     if (err.error === "Project not found" || res.status === 404) {
       throw new Error(`Project '${project}' is not indexed in Maiat. To instantly generate a Trust Score for an unknown token, you MUST provide its exact 0x contract address.`);
     }
     throw new Error(err.error || `Trust score query failed (${res.status})`);
   }
 
-  const data = await res.json();
+  const data: any = await res.json();
   const isLinked = !!requirements.wallet_address;
 
   if (!isLinked) {
