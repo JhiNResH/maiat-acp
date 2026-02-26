@@ -65,7 +65,6 @@ export async function executeJob(
   }
 
   const targetAddress = match[0];
-  const isLinked = !!requirements.wallet_address;
 
   // Single unified call — protocol auto-detects contract vs wallet
   const res = await fetch(`${MAIAT_API}/api/v1/report/${targetAddress}`);
@@ -75,7 +74,7 @@ export async function executeJob(
   const data: any = await res.json();
 
   const gift =
-    "Thanks for using Maiat Premium! Register at https://maiat-protocol.vercel.app and leave a review for Agent 3723 on Virtuals ACP to earn 20 Scarab points instantly!";
+    "Thanks for using Maiat! Leave a review at https://maiat-protocol.vercel.app to earn 20 Scarab points.";
 
   const reviewUrl = data.slug
     ? `https://maiat-protocol.vercel.app/agent/${data.slug}`
@@ -88,75 +87,46 @@ export async function executeJob(
 
   // ── Contract / Protocol report ──────────────────────────────────────────────
   if (data.reportType === "contract") {
-    const result = isLinked
-      ? {
-          report_type: "Token/Contract",
-          target: targetAddress,
-          onChainData: {
-            name: data.name,
-            category: data.category,
-            description: data.description,
-            website: data.website,
-            trustScore: data.trustScore,
-            riskLevel: data.riskLevel,
-            reviewCount: data.reviewCount,
-            avgRating: data.avgRating,
-            breakdown: data.breakdown,
-            riskFlags: data.riskFlags,
-            strengths: data.strengths,
-            recentReviews: data.recentReviews,
-          },
-          maiats_gift: gift,
-          review_prompt,
-        }
-      : {
-          report_type: "Token/Contract",
-          target: targetAddress,
-          onChainData: {
-            name: data.name,
-            category: data.category,
-            trustScore: data.trustScore,
-            riskLevel: "Unlock Required",
-            breakdown: "HIDDEN",
-            recentReviews: "HIDDEN",
-          },
-          action_required:
-            "⚠️ Pass 'wallet_address' in requirements to unlock full breakdown, reviews, and risk analysis. Register at https://maiat-protocol.vercel.app",
-          review_prompt,
-        };
-
-    return { deliverable: JSON.stringify(result) };
-  }
-
-  // ── Wallet report ───────────────────────────────────────────────────────────
-  const result = isLinked
-    ? {
-        report_type: "Wallet",
+    return {
+      deliverable: JSON.stringify({
+        report_type: "Token/Contract",
         target: targetAddress,
         onChainData: {
-          trustLevel: data.trustLevel,
-          reputationScore: data.reputationScore,
-          scarabBalance: data.scarabBalance,
-          totalReviews: data.totalReviews,
-          totalUpvotes: data.totalUpvotes,
-          feeTier: data.feeTier,
-          feeDiscount: data.feeDiscount,
+          name: data.name,
+          category: data.category,
+          description: data.description,
+          website: data.website,
+          trustScore: data.trustScore,
+          riskLevel: data.riskLevel,
+          reviewCount: data.reviewCount,
+          avgRating: data.avgRating,
+          breakdown: data.breakdown,
+          riskFlags: data.riskFlags,
+          strengths: data.strengths,
           recentReviews: data.recentReviews,
         },
         maiats_gift: gift,
-      }
-    : {
-        report_type: "Wallet",
-        target: targetAddress,
-        onChainData: {
-          trustLevel: data.trustLevel,
-          reputationScore: data.reputationScore,
-          scarabBalance: "HIDDEN",
-          recentReviews: "HIDDEN",
-        },
-        action_required:
-          "⚠️ Pass 'wallet_address' in requirements to unlock full wallet analytics. Register at https://maiat-protocol.vercel.app",
-      };
+        review_prompt,
+      }),
+    };
+  }
 
-  return { deliverable: JSON.stringify(result) };
+  // ── Wallet report ───────────────────────────────────────────────────────────
+  return {
+    deliverable: JSON.stringify({
+      report_type: "Wallet",
+      target: targetAddress,
+      onChainData: {
+        trustLevel: data.trustLevel,
+        reputationScore: data.reputationScore,
+        scarabBalance: data.scarabBalance,
+        totalReviews: data.totalReviews,
+        totalUpvotes: data.totalUpvotes,
+        feeTier: data.feeTier,
+        feeDiscount: data.feeDiscount,
+        recentReviews: data.recentReviews,
+      },
+      maiats_gift: gift,
+    }),
+  };
 }
