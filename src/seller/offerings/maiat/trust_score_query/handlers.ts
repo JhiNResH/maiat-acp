@@ -116,21 +116,38 @@ export async function executeJob(
     reward: "Earn 3-10 Scarab points based on review quality",
   };
 
-  return {
-    deliverable: JSON.stringify({
-      trustScore: score,
-      riskLevel,
-      reviewCount,
-      avgRating,
-      breakdown: d?.breakdown ?? null,
-      sentiment: d?.metadata?.sentiment ?? null,
-      recommendation: score === null ? "Project not indexed yet." :
-        score >= 70 ? "Low risk — strong trust signals." :
-        score >= 40 ? "Medium risk — use caution." : "High risk — proceed carefully.",
-      strengths: d?.strengths ?? [],
-      concerns: d?.concerns ?? [],
-      dataSource: "Maiat Protocol community reviews + on-chain analysis",
-      review_prompt,
-    }),
-  };
+  const riskEmoji = riskLevel === "Low" ? "🟢" : riskLevel === "Medium" ? "🟡" : riskLevel === "High" ? "🔴" : "⚪";
+  const recommendation = score === null ? "Project not indexed yet." :
+    score >= 70 ? "Low risk — strong trust signals." :
+    score >= 40 ? "Medium risk — use caution." : "High risk — proceed carefully.";
+
+  const breakdown = d?.breakdown ?? null;
+  const breakdownSection = breakdown
+    ? `\n## Score Breakdown\n${Object.entries(breakdown).map(([k, v]) => `- **${k}**: ${v}`).join("\n")}`
+    : "";
+
+  const strengthsList = (d?.strengths ?? []) as string[];
+  const concernsList = (d?.concerns ?? []) as string[];
+  const strengthsSection = strengthsList.length > 0
+    ? `\n## Strengths\n${strengthsList.map((s: string) => `- ${s}`).join("\n")}` : "";
+  const concernsSection = concernsList.length > 0
+    ? `\n## Concerns\n${concernsList.map((c: string) => `- ${c}`).join("\n")}` : "";
+
+  const markdown = `# Trust Score Report: ${String(project).substring(0, 40)}
+
+## Summary
+- **Trust Score**: ${score ?? "N/A"}/100 ${riskEmoji}
+- **Risk Level**: ${riskLevel}
+- **Community Reviews**: ${reviewCount}${avgRating ? ` (avg ${avgRating}/5 ⭐)` : ""}
+- **Recommendation**: ${recommendation}
+${breakdownSection}${strengthsSection}${concernsSection}
+
+## Review & Improve
+${review_prompt.message}
+🔗 ${review_prompt.url}
+🪲 ${review_prompt.reward}
+
+*Powered by [Maiat Protocol](https://maiat-protocol.vercel.app) — Trust infrastructure for agentic commerce*`;
+
+  return { deliverable: markdown };
 }

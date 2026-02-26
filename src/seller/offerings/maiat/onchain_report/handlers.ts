@@ -87,46 +87,50 @@ export async function executeJob(
 
   // ── Contract / Protocol report ──────────────────────────────────────────────
   if (data.reportType === "contract") {
-    return {
-      deliverable: JSON.stringify({
-        report_type: "Token/Contract",
-        target: targetAddress,
-        onChainData: {
-          name: data.name,
-          category: data.category,
-          description: data.description,
-          website: data.website,
-          trustScore: data.trustScore,
-          riskLevel: data.riskLevel,
-          reviewCount: data.reviewCount,
-          avgRating: data.avgRating,
-          breakdown: data.breakdown,
-          riskFlags: data.riskFlags,
-          strengths: data.strengths,
-          recentReviews: data.recentReviews,
-        },
-        maiats_gift: gift,
-        review_prompt,
-      }),
-    };
+    const riskEmoji = data.riskLevel === "Low" ? "🟢" : data.riskLevel === "Medium" ? "🟡" : data.riskLevel === "High" ? "🔴" : "⚪";
+    const breakdownSection = data.breakdown
+      ? `\n## Score Breakdown\n${Object.entries(data.breakdown).map(([k, v]) => `- **${k}**: ${v}`).join("\n")}` : "";
+    const flagsSection = data.riskFlags?.length
+      ? `\n## Risk Flags\n${data.riskFlags.map((f: string) => `- ⚠️ ${f}`).join("\n")}` : "";
+    const strengthsSection = data.strengths?.length
+      ? `\n## Strengths\n${data.strengths.map((s: string) => `- ✅ ${s}`).join("\n")}` : "";
+    const reviewsSection = data.recentReviews?.length
+      ? `\n## Recent Reviews\n${data.recentReviews.slice(0,3).map((r: any) => `- ${"⭐".repeat(r.rating ?? 0)} "${r.comment ?? ""}"`).join("\n")}` : "";
+
+    const markdown = `# On-Chain Report: ${data.name ?? targetAddress}
+
+## Overview
+- **Address**: \`${targetAddress}\`
+- **Category**: ${data.category ?? "Unknown"}
+- **Trust Score**: ${data.trustScore ?? "N/A"}/100 ${riskEmoji}
+- **Risk Level**: ${data.riskLevel ?? "Unknown"}
+- **Reviews**: ${data.reviewCount ?? 0}${data.avgRating ? ` (avg ${data.avgRating}/5 ⭐)` : ""}
+${data.website ? `- **Website**: ${data.website}` : ""}
+${breakdownSection}${flagsSection}${strengthsSection}${reviewsSection}
+
+---
+${review_prompt ? `📝 **${review_prompt.message}**\n🔗 ${review_prompt.url}\n🪲 ${review_prompt.reward}\n\n` : ""}${gift}
+*Powered by [Maiat Protocol](https://maiat-protocol.vercel.app)*`;
+
+    return { deliverable: markdown };
   }
 
   // ── Wallet report ───────────────────────────────────────────────────────────
-  return {
-    deliverable: JSON.stringify({
-      report_type: "Wallet",
-      target: targetAddress,
-      onChainData: {
-        trustLevel: data.trustLevel,
-        reputationScore: data.reputationScore,
-        scarabBalance: data.scarabBalance,
-        totalReviews: data.totalReviews,
-        totalUpvotes: data.totalUpvotes,
-        feeTier: data.feeTier,
-        feeDiscount: data.feeDiscount,
-        recentReviews: data.recentReviews,
-      },
-      maiats_gift: gift,
-    }),
-  };
+  const levelEmoji: Record<string, string> = { guardian: "🛡️", verified: "✅", trusted: "🔵", basic: "⚪" };
+  const markdown = `# Wallet Reputation Report
+
+## Overview
+- **Address**: \`${targetAddress}\`
+- **Trust Level**: ${levelEmoji[data.trustLevel] ?? "⚪"} ${data.trustLevel ?? "Unknown"}
+- **Reputation Score**: ${data.reputationScore ?? "N/A"}
+- **Scarab Balance**: 🪲 ${data.scarabBalance ?? 0}
+- **Reviews Given**: ${data.totalReviews ?? 0}
+- **Upvotes Received**: ${data.totalUpvotes ?? 0}
+${data.feeTier ? `- **Fee Tier**: ${data.feeTier}${data.feeDiscount ? ` (${data.feeDiscount}% discount)` : ""}` : ""}
+
+---
+${gift}
+*Powered by [Maiat Protocol](https://maiat-protocol.vercel.app)*`;
+
+  return { deliverable: markdown };
 }

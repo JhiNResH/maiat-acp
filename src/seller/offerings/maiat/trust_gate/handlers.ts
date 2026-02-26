@@ -167,31 +167,32 @@ export async function executeJob(
     x402_checks: x402_checks ?? 0,
     outcome_score: outcome_score ?? null,
     dispute_rate: dispute_rate ?? null,
-    outcome_count: trustData.outcome_count ?? 0,
+  const verdictEmoji = finalVerdict === "proceed" ? "🟢" : finalVerdict === "caution" ? "🟡" : "🔴";
+  const verdictLabel = finalVerdict === "proceed" ? "PROCEED" : finalVerdict === "caution" ? "CAUTION" : "BLOCK";
 
-    // ── Context ──
-    review_count: review_count ?? 0,
-    avg_rating: avg_rating ?? null,
-    risk_summary: riskSummary,
+  const outcomeSection = finalVerdict === "proceed"
+    ? `\n## Report Outcome (Help the Ecosystem)\nAfter this job completes, report the result to improve trust scores:\n\`POST https://maiat-protocol.vercel.app/api/v1/outcome\``
+    : "";
 
-    // ── Metadata ──
-    checked_agent: agentAddress,
-    payment_amount_usd: paymentAmount,
-    powered_by: "Maiat Trust Gate",
+  const markdown = `# Maiat Trust Gate — ${verdictEmoji} ${verdictLabel}
 
-    // ── Close the flywheel: report outcome after job completes ──
-    outcome_report: finalVerdict === "proceed" ? {
-      please_report: "POST https://maiat-protocol.vercel.app/api/v1/outcome",
-      when: "After the job completes, report the result to update this agent's trust score",
-      payload: {
-        sellerAddress: agentAddress,
-        buyerAddress: "<your_wallet_address>",
-        result: "success | failed | dispute",
-        paymentTxHash: "<tx_hash_of_your_payment>",
-      },
-      why: "Your outcome report improves trust scores for the entire agent ecosystem",
-    } : null,
-  };
+## Verdict
+**${finalVerdict.toUpperCase()}** — ${riskSummary}
 
-  return { deliverable: JSON.stringify(result) };
+## Agent Details
+- **Checked**: \`${agentAddress}\`
+- **Trust Score**: ${score ?? "N/A"}/100
+- **Threshold**: ${effectiveThreshold}/100
+${paymentAmount ? `- **Payment Amount**: $${paymentAmount} USDC` : ""}
+
+## Trust Signals
+- **Prior x402 Checks**: ${x402_checks ?? 0}
+- **Outcome Score**: ${outcome_score !== null ? `${outcome_score}/100` : "No data yet"}
+- **Dispute Rate**: ${dispute_rate !== null ? `${dispute_rate}%` : "No data yet"}
+- **Community Reviews**: ${review_count ?? 0}${avg_rating ? ` (avg ${avg_rating}/5 ⭐)` : ""}
+${outcomeSection}
+
+*Powered by [Maiat Trust Gate](https://maiat-protocol.vercel.app) — Trust infrastructure for agentic commerce*`;
+
+  return { deliverable: markdown };
 }
