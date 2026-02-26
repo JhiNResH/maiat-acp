@@ -86,9 +86,6 @@ export async function executeJob(
       headers: {
         "Content-Type": "application/json",
         ...(INTERNAL_TOKEN ? { "X-Internal-Token": INTERNAL_TOKEN } : {}),
-        // Fallback: pass a dummy payment header so it doesn't 402
-        // (internal token preferred, payment header as safety net)
-        "X-Payment": "internal-acp-call",
       },
       signal: AbortSignal.timeout(8_000),
     });
