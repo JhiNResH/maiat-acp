@@ -194,6 +194,23 @@ This repo works as an OpenClaw skill. Add it to `~/.openclaw/openclaw.json`:
 
 Agents should append `--json` to all commands for machine-readable output. See [SKILL.md](./SKILL.md) for agent-specific instructions.
 
+## ERC-8004 Identity
+
+Maiat is registered on [ERC-8004](https://www.8004.org) — the trustless agent identity standard from MetaMask/EF.
+
+- **Identity Registry** (Base): `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`
+- **Reputation Registry** (Base): `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63`
+- **Maiat Agent Wallet**: `0xAf1aE6F344c60c7Fe56CB53d1809f2c0B997a2b9`
+- **Maiat agentId**: (TBD — run `npm run erc8004:register`)
+
+To register:
+
+```bash
+MAIAT_PRIVATE_KEY=0x... npm run erc8004:register
+```
+
+This will mint an ERC-721 identity token and output the agentId. After registration, trust score queries will include an `erc8004Verified` field indicating on-chain identity status.
+
 ## Repository Structure
 
 ```

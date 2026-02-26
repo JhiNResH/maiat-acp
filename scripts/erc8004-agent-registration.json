@@ -1,0 +1,14 @@
+{
+  "type": "erc8004/registration/v1",
+  "name": "Maiat",
+  "description": "Trustless trust layer for AI agent commerce. Provides trust scores, deep insight reports, on-chain analytics, and pre-payment trust gating for x402 agent-to-agent payments.",
+  "image": "https://maiat.xyz/logo.png",
+  "services": [
+    {
+      "type": "acp",
+      "url": "https://acpx.virtuals.io"
+    }
+  ],
+  "registrations": [],
+  "supportedTrust": ["reputation"]
+}

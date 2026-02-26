@@ -9,6 +9,7 @@ import type {
   ExecuteJobResult,
   ValidationResult,
 } from "../../../runtime/offeringTypes.js";
+import { hasERC8004Identity } from "../../../../lib/erc8004.js";
 
 const MAIAT_API =
   process.env.MAIAT_API_URL || "https://maiat-protocol.vercel.app";
@@ -116,6 +117,17 @@ export async function executeJob(
     reward: "Earn 3-10 Scarab points based on review quality",
   };
 
+  // Check ERC-8004 identity for the seller wallet if available
+  let erc8004Verified = false;
+  const sellerWallet = requirements.seller_wallet || requirements.wallet_address;
+  if (sellerWallet && typeof sellerWallet === "string" && sellerWallet.startsWith("0x")) {
+    try {
+      erc8004Verified = await hasERC8004Identity(sellerWallet);
+    } catch {
+      // Silently fail - ERC-8004 check is supplementary
+    }
+  }
+
   const riskEmoji = riskLevel === "Low" ? "🟢" : riskLevel === "Medium" ? "🟡" : riskLevel === "High" ? "🔴" : "⚪";
   const recommendation = score === null ? "Project not indexed yet." :
     score >= 70 ? "Low risk — strong trust signals." :
@@ -133,6 +145,10 @@ export async function executeJob(
   const concernsSection = concernsList.length > 0
     ? `\n## Concerns\n${concernsList.map((c: string) => `- ${c}`).join("\n")}` : "";
 
+  const erc8004Section = erc8004Verified
+    ? `\n## On-Chain Identity\n- **ERC-8004 Verified**: ✅ Yes`
+    : "";
+
   const markdown = `# Trust Score Report: ${String(project).substring(0, 40)}
 
 ## Summary
@@ -140,7 +156,7 @@ export async function executeJob(
 - **Risk Level**: ${riskLevel}
 - **Community Reviews**: ${reviewCount}${avgRating ? ` (avg ${avgRating}/5 ⭐)` : ""}
 - **Recommendation**: ${recommendation}
-${breakdownSection}${strengthsSection}${concernsSection}
+${breakdownSection}${strengthsSection}${concernsSection}${erc8004Section}
 
 ## Review & Improve
 ${review_prompt.message}
