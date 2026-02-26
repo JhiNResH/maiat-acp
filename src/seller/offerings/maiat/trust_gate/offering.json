@@ -1,0 +1,41 @@
+{
+  "name": "trust_gate",
+  "description": "Pre-payment trust gate for x402 agent commerce. Before paying another agent, check if they're trustworthy. Returns verdict (proceed/caution/block), trust score, x402 check count, and outcome score from real delivery history. Optimized for automated agent decision-making — not a human report.",
+  "jobFee": 0.05,
+  "jobFeeType": "fixed",
+  "requiredFunds": false,
+  "requirement": {
+    "type": "object",
+    "properties": {
+      "agent": {
+        "type": "string",
+        "description": "0x address of the agent or protocol to evaluate before paying"
+      },
+      "payment_amount": {
+        "type": "string",
+        "description": "Amount (USDC) you're about to pay — used to calibrate risk tolerance (optional)"
+      },
+      "threshold": {
+        "type": "number",
+        "description": "Minimum trust score to receive 'proceed' verdict. Default: 60"
+      }
+    },
+    "required": ["agent"]
+  },
+  "deliverable": {
+    "type": "object",
+    "properties": {
+      "verdict": {
+        "type": "string",
+        "description": "proceed | caution | block — your action signal"
+      },
+      "score": { "type": "number", "description": "Trust score 0-100" },
+      "x402_checks": { "type": "number", "description": "How many agents have checked this address via x402" },
+      "outcome_score": { "type": "number", "description": "Score from real delivery outcomes (null if no data yet)" },
+      "dispute_rate": { "type": "number", "description": "% of jobs that ended in dispute" },
+      "review_count": { "type": "number" },
+      "avg_rating": { "type": "number" },
+      "risk_summary": { "type": "string", "description": "One-line human-readable verdict" }
+    }
+  }
+}
