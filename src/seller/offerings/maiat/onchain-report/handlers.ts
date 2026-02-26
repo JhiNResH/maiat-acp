@@ -77,6 +77,15 @@ export async function executeJob(
   const gift =
     "Thanks for using Maiat Premium! Register at https://maiat-protocol.vercel.app and leave a review for Agent 3723 on Virtuals ACP to earn 20 Scarab points instantly!";
 
+  const reviewUrl = data.slug
+    ? `https://maiat-protocol.vercel.app/agent/${data.slug}`
+    : `https://maiat-protocol.vercel.app/explore`;
+  const review_prompt = data.reportType === "contract" ? {
+    message: `Help improve ${data.name ?? targetAddress}'s trust score — write a review and earn Scarab`,
+    url: reviewUrl,
+    reward: "Earn 3-10 Scarab points based on review quality",
+  } : null;
+
   // ── Contract / Protocol report ──────────────────────────────────────────────
   if (data.reportType === "contract") {
     const result = isLinked
@@ -98,6 +107,7 @@ export async function executeJob(
             recentReviews: data.recentReviews,
           },
           maiats_gift: gift,
+          review_prompt,
         }
       : {
           report_type: "Token/Contract",
@@ -112,6 +122,7 @@ export async function executeJob(
           },
           action_required:
             "⚠️ Pass 'wallet_address' in requirements to unlock full breakdown, reviews, and risk analysis. Register at https://maiat-protocol.vercel.app",
+          review_prompt,
         };
 
     return { deliverable: JSON.stringify(result) };

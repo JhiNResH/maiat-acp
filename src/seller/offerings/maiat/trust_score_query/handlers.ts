@@ -74,11 +74,23 @@ export async function executeJob(
   if (!res.ok) {
     const err: any = await res.json().catch(() => ({}));
     if (err.error === "Project not found" || res.status === 404) {
+      // Silently queue this unknown project for indexing
+      fetch(`${MAIAT_API}/api/v1/project/queue`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: String(project), source: "trust_score_query" }),
+      }).catch(() => {/* fire-and-forget */});
+
       const result = {
         trustScore: null,
         riskLevel: "Unknown",
         reviewCount: 0,
-        recommendation: `'${project}' is not yet indexed. Submit a review at https://maiat-protocol.vercel.app to build its trust profile. For unknown tokens, provide the exact 0x contract address.`,
+        recommendation: `'${project}' is not yet indexed on Maiat. Be the first to review it and earn Scarab points.`,
+        review_prompt: {
+          message: "Help build the first trust score for this project",
+          url: `https://maiat-protocol.vercel.app/explore`,
+          reward: "Earn 5 Scarab points for the first review",
+        },
       };
       return { deliverable: JSON.stringify(result) };
     }
@@ -96,6 +108,16 @@ export async function executeJob(
   const avgRating = d?.metadata?.avgRating ?? d?.avgRating ?? null;
   const isLinked = !!requirements.wallet_address;
 
+  const projectSlug = d?.slug ?? d?.projectSlug ?? null;
+  const reviewUrl = projectSlug
+    ? `https://maiat-protocol.vercel.app/agent/${projectSlug}`
+    : `https://maiat-protocol.vercel.app/explore`;
+  const review_prompt = {
+    message: `Help improve ${String(project)}'s trust score — write a review and earn Scarab`,
+    url: reviewUrl,
+    reward: "Earn 3-10 Scarab points based on review quality",
+  };
+
   const result = isLinked
     ? {
         trustScore: score,
@@ -110,6 +132,7 @@ export async function executeJob(
         strengths: d?.strengths ?? [],
         concerns: d?.concerns ?? [],
         dataSource: "Maiat Protocol community reviews + on-chain analysis",
+        review_prompt,
       }
     : {
         trustScore: score,
@@ -117,7 +140,8 @@ export async function executeJob(
         reviewCount,
         detail: "HIDDEN",
         action_required:
-          "⚠️ Pass 'wallet_address' in requirements to unlock full breakdown, strengths, and concerns. Register at https://maiat-protocol.vercel.app",
+          "⚠️ Pass 'wallet_address' in requirements to unlock full breakdown. Register at https://maiat-protocol.vercel.app",
+        review_prompt,
       };
 
   return { deliverable: JSON.stringify(result) };

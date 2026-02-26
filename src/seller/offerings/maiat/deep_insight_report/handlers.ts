@@ -132,6 +132,11 @@ export async function executeJob(
     trustData?.riskLevel ??
     (score === null ? "Unknown" : score >= 70 ? "Low" : score >= 40 ? "Medium" : "High");
 
+  const projectSlug = (trustData?.data?.projectSlug ?? trustData?.projectSlug ?? null) as string | null;
+  const reviewUrl = projectSlug
+    ? `https://maiat-protocol.vercel.app/agent/${projectSlug}`
+    : `https://maiat-protocol.vercel.app/explore`;
+
   const result = {
     project,
     trustScore: score,
@@ -147,6 +152,11 @@ export async function executeJob(
       ? "Maiat Protocol + Google Gemini 2.0 Flash"
       : "Maiat Protocol (AI analysis disabled)",
     dataSource: "Community reviews + on-chain analysis",
+    review_prompt: {
+      message: `Improve ${String(project)}'s trust data — write a review and earn Scarab`,
+      url: reviewUrl,
+      reward: "Earn 3-10 Scarab points based on review quality",
+    },
     learnMore: "https://maiat-protocol.vercel.app",
   };
 

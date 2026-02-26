@@ -170,6 +170,19 @@ export async function executeJob(
     checked_agent: agentAddress,
     payment_amount_usd: paymentAmount,
     powered_by: "Maiat Trust Gate",
+
+    // ── Close the flywheel: report outcome after job completes ──
+    outcome_report: finalVerdict === "proceed" ? {
+      please_report: "POST https://maiat-protocol.vercel.app/api/v1/outcome",
+      when: "After the job completes, report the result to update this agent's trust score",
+      payload: {
+        sellerAddress: agentAddress,
+        buyerAddress: "<your_wallet_address>",
+        result: "success | failed | dispute",
+        paymentTxHash: "<tx_hash_of_your_payment>",
+      },
+      why: "Your outcome report improves trust scores for the entire agent ecosystem",
+    } : null,
   };
 
   return { deliverable: JSON.stringify(result) };
