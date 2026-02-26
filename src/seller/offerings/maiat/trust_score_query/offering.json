@@ -1,6 +1,6 @@
 {
   "name": "trust_score_query",
-  "description": "Get trust score for any crypto project (AI agents & DeFi protocols). Returns score 0-100, risk level, review count, sentiment, strengths, and concerns. Powered by community reviews + AI baseline analysis.",
+  "description": "Research any crypto project by name or address. Returns trust score (0-100), risk level (Low/Medium/High), community review count, average rating, strengths, and concerns. Accepts project name (e.g. 'AIXBT', 'Uniswap') or contract address. Powered by Maiat community reviews and on-chain baseline analysis. For automated x402 agent payments, use trust_gate instead.",
   "jobFee": 0.01,
   "jobFeeType": "fixed",
   "requiredFunds": false,
@@ -9,7 +9,7 @@
     "properties": {
       "project": {
         "type": "string",
-        "description": "Project name or contract address (e.g. 'uniswap', 'aixbt', '0x1f98...')"
+        "description": "Project name (e.g. 'AIXBT', 'Uniswap') or contract address (0x...)"
       }
     },
     "required": ["project"]
@@ -18,10 +18,9 @@
     "type": "object",
     "properties": {
       "trustScore": { "type": "number", "description": "Trust score 0-100" },
-      "riskLevel": { "type": "string", "description": "Low/Medium/High" },
+      "riskLevel": { "type": "string", "description": "Low / Medium / High / Unknown" },
       "reviewCount": { "type": "number" },
-      "avgRating": { "type": "number" },
-      "sentiment": { "type": "number", "description": "Positive sentiment %" },
+      "avgRating": { "type": "number", "description": "Community average rating (1-10)" },
       "recommendation": { "type": "string" },
       "strengths": { "type": "array", "items": { "type": "string" } },
       "concerns": { "type": "array", "items": { "type": "string" } }

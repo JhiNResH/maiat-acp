@@ -1,19 +1,19 @@
 {
   "name": "onchain_report",
-  "description": "Comprehensive 2-in-1 on-chain analytics. Pass a Token address for Due Diligence (holders, honeypot risk, market health) or a Wallet address for KOL Profiling (reputation, interaction history).",
+  "description": "2-in-1 on-chain report. Pass a contract address to get a Trust Due Diligence report (trust score, risk level, breakdown, recent community reviews). Pass a wallet address to get a Wallet Reputation Profile (trust level, reputation score, Scarab balance, interaction history, reviews written). Automatically detects contract vs wallet.",
   "jobFee": 0.5,
   "jobFeeType": "fixed",
   "requiredFunds": false,
-  "requirements": {
+  "requirement": {
     "type": "object",
     "properties": {
       "address": {
         "type": "string",
-        "description": "Token contract address or human wallet address"
+        "description": "Contract address for Trust Due Diligence, or wallet address for Reputation Profile"
       },
       "wallet_address": {
         "type": "string",
-        "description": "The connected buyer's wallet address (Optional but unlocks full features)"
+        "description": "Your connected wallet address (optional — unlocks full breakdown vs summary)"
       }
     },
     "required": ["address"]
@@ -21,14 +21,12 @@
   "deliverable": {
     "type": "object",
     "properties": {
-      "report_type": { "type": "string", "enum": ["Token", "Wallet"] },
+      "report_type": { "type": "string", "description": "Token/Contract or Wallet" },
       "target": { "type": "string" },
       "onChainData": {
         "type": "object",
-        "description": "Dynamic data object populated with either token metrics or wallet reputation."
-      },
-      "maiats_gift": { "type": "string" },
-      "action_required": { "type": "string" }
+        "description": "Contract: { name, category, trustScore, riskLevel, breakdown, recentReviews } | Wallet: { trustLevel, reputationScore, scarabBalance, totalReviews, totalUpvotes, recentReviews }"
+      }
     }
   }
 }

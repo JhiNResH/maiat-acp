@@ -1,6 +1,6 @@
 {
   "name": "trust_gate",
-  "description": "Pre-payment trust gate for x402 agent commerce. Before paying another agent, check if they're trustworthy. Returns verdict (proceed/caution/block), trust score, x402 check count, and outcome score from real delivery history. Optimized for automated agent decision-making — not a human report.",
+  "description": "Automated pre-payment trust gate for x402 agent commerce. Pass a 0x wallet address and optionally the payment amount. Returns a machine-readable verdict (proceed/caution/block), trust score, number of x402 checks by other agents, outcome score from real delivery history, and dispute rate. Designed for agents to call before committing a payment — not a human research report.",
   "jobFee": 0.02,
   "jobFeeType": "fixed",
   "requiredFunds": false,
@@ -9,15 +9,15 @@
     "properties": {
       "agent": {
         "type": "string",
-        "description": "0x address of the agent or protocol to evaluate before paying"
+        "description": "0x wallet address of the agent you are about to pay"
       },
       "payment_amount": {
         "type": "string",
-        "description": "Amount (USDC) you're about to pay — used to calibrate risk tolerance (optional)"
+        "description": "Amount in USD you are about to send (e.g. '5.00') — used to calibrate risk threshold"
       },
       "threshold": {
         "type": "number",
-        "description": "Minimum trust score to receive 'proceed' verdict. Default: 60"
+        "description": "Minimum trust score for 'proceed' verdict. Default: 60"
       }
     },
     "required": ["agent"]
@@ -25,16 +25,11 @@
   "deliverable": {
     "type": "object",
     "properties": {
-      "verdict": {
-        "type": "string",
-        "description": "proceed | caution | block — your action signal"
-      },
+      "verdict": { "type": "string", "description": "proceed | caution | block" },
       "score": { "type": "number", "description": "Trust score 0-100" },
-      "x402_checks": { "type": "number", "description": "How many agents have checked this address via x402" },
-      "outcome_score": { "type": "number", "description": "Score from real delivery outcomes (null if no data yet)" },
+      "x402_checks": { "type": "number", "description": "Times this agent was checked via x402 by other agents" },
+      "outcome_score": { "type": "number", "description": "Score from verified delivery outcomes (null if no data)" },
       "dispute_rate": { "type": "number", "description": "% of jobs that ended in dispute" },
-      "review_count": { "type": "number" },
-      "avg_rating": { "type": "number" },
       "risk_summary": { "type": "string", "description": "One-line human-readable verdict" }
     }
   }

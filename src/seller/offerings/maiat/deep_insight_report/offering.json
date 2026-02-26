@@ -1,7 +1,7 @@
 {
   "name": "deep_insight_report",
-  "description": "AI-powered deep analysis of crypto projects using decentralized compute (0G Network). Includes authenticity verification of reviews, sentiment analysis, risk assessment, and on-chain activity analysis. Verified by TeeML trusted execution.",
-  "jobFee": 0.10,
+  "description": "Deep analysis of any crypto project combining Maiat trust data with AI-generated insights. Returns trust score, risk level, review sentiment, strengths, concerns, and a concise AI verdict (buy/use/avoid signal with red flags and green flags). AI analysis powered by Qwen3.5-Flash. Accepts project name or contract address.",
+  "jobFee": 0.1,
   "jobFeeType": "fixed",
   "requiredFunds": false,
   "requirement": {
@@ -9,12 +9,7 @@
     "properties": {
       "project": {
         "type": "string",
-        "description": "Project name or contract address"
-      },
-      "depth": {
-        "type": "string",
-        "enum": ["basic", "premium", "deep"],
-        "description": "Analysis depth level (default: basic)"
+        "description": "Project name (e.g. 'AIXBT', 'Uniswap') or contract address (0x...)"
       }
     },
     "required": ["project"]
@@ -22,18 +17,17 @@
   "deliverable": {
     "type": "object",
     "properties": {
-      "trustScore": { "type": "number" },
-      "aiVerification": {
-        "type": "object",
-        "properties": {
-          "score": { "type": "number" },
-          "verdict": { "type": "string" },
-          "reasoning": { "type": "string" },
-          "verifiedBy": { "type": "string", "description": "0G Compute Network" }
-        }
+      "trustScore": { "type": "number", "description": "Trust score 0-100" },
+      "riskLevel": { "type": "string", "description": "Low / Medium / High" },
+      "reviewCount": { "type": "number" },
+      "avgRating": { "type": "number" },
+      "strengths": { "type": "array", "items": { "type": "string" } },
+      "concerns": { "type": "array", "items": { "type": "string" } },
+      "aiAnalysis": {
+        "type": "string",
+        "description": "AI-generated verdict: one-sentence signal, top red flags, green flags, confidence level"
       },
-      "riskLevel": { "type": "string" },
-      "recommendation": { "type": "string" }
+      "poweredBy": { "type": "string", "description": "Maiat Protocol + Qwen3.5-Flash" }
     }
   }
 }
