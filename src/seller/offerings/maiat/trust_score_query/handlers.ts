@@ -85,30 +85,39 @@ export async function executeJob(
     throw new Error(err.error || `Trust score query failed (${res.status})`);
   }
 
-  const data: any = await res.json();
+  const raw: any = await res.json();
+  // API returns { success, data: { score, breakdown, metadata, ... } }
+  const d = raw?.data ?? raw;
+  const score = d?.score ?? d?.trustScore ?? null;
+  const riskLevel = d?.riskLevel ?? (
+    score === null ? "Unknown" : score >= 70 ? "Low" : score >= 40 ? "Medium" : "High"
+  );
+  const reviewCount = d?.metadata?.totalReviews ?? d?.reviewCount ?? 0;
+  const avgRating = d?.metadata?.avgRating ?? d?.avgRating ?? null;
   const isLinked = !!requirements.wallet_address;
 
   const result = isLinked
     ? {
-        trustScore: data.trustScore,
-        riskLevel: data.riskLevel,
-        reviewCount: data.reviewCount,
-        avgRating: data.avgRating,
-        sentiment: data.sentiment,
-        recommendation: data.recommendation,
-        strengths: data.strengths,
-        concerns: data.concerns,
-        chain: data.chain,
-        category: data.category,
-        dataSource: data.dataSource,
+        trustScore: score,
+        riskLevel,
+        reviewCount,
+        avgRating,
+        breakdown: d?.breakdown ?? null,
+        sentiment: d?.metadata?.sentiment ?? null,
+        recommendation: score === null ? "Project not indexed yet." :
+          score >= 70 ? "Low risk — strong trust signals." :
+          score >= 40 ? "Medium risk — use caution." : "High risk — proceed carefully.",
+        strengths: d?.strengths ?? [],
+        concerns: d?.concerns ?? [],
+        dataSource: "Maiat Protocol community reviews + on-chain analysis",
       }
     : {
-        trustScore: data.trustScore,
-        riskLevel: "Unknown (Unlock Required)",
-        reviewCount: data.reviewCount,
+        trustScore: score,
+        riskLevel: "Unlock Required",
+        reviewCount,
         detail: "HIDDEN",
         action_required:
-          "⚠️ Account not linked. Register at https://maiat-protocol.vercel.app and leave a review, then pass 'wallet_address' in the next request to unlock full details.",
+          "⚠️ Pass 'wallet_address' in requirements to unlock full breakdown, strengths, and concerns. Register at https://maiat-protocol.vercel.app",
       };
 
   return { deliverable: JSON.stringify(result) };
