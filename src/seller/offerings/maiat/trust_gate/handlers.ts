@@ -95,6 +95,17 @@ export async function executeJob(
 
     if (res.ok) {
       trustData = await res.json();
+    } else if (res.status === 404) {
+      // Address not in Maiat registry — return caution with helpful message
+      return {
+        deliverable: JSON.stringify({
+          verdict: "caution",
+          score: null,
+          error: "Address not found in Maiat registry — no prior interaction data",
+          action: "New or unverified agent. Proceed with caution or request collateral.",
+          suggestion: "Submit a review at maiat-protocol.vercel.app to add this agent.",
+        }),
+      };
     } else if (res.status === 402) {
       // Internal token not configured — call failed
       // Degrade gracefully: return unknown verdict
