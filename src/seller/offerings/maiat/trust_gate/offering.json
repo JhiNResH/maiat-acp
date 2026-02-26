@@ -1,7 +1,7 @@
 {
   "name": "trust_gate",
   "description": "Pre-payment trust gate for x402 agent commerce. Before paying another agent, check if they're trustworthy. Returns verdict (proceed/caution/block), trust score, x402 check count, and outcome score from real delivery history. Optimized for automated agent decision-making — not a human report.",
-  "jobFee": 0.05,
+  "jobFee": 0.02,
   "jobFeeType": "fixed",
   "requiredFunds": false,
   "requirement": {
