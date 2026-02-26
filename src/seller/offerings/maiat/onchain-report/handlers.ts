@@ -2,9 +2,11 @@
  * Maiat On-Chain Report — ACP Seller Handler
  *
  * 2-in-1 Premium Service ($1.00)
- * Uses maiat-protocol to fetch either:
- * - Token Due Diligence (if address is a token contract)
- * - Wallet Profiling (if address is a wallet)
+ * Calls GET /api/v1/report/[address] — a single unified endpoint.
+ * Auto-detects: contract/protocol report OR wallet passport report.
+ *
+ * Previously: 2-3 separate API calls + local assembly.
+ * Now: 1 call, zero local assembly.
  */
 
 import type {
@@ -41,7 +43,7 @@ export function validateRequirements(
 
 // ── Payment message ───────────────────────────────────────────────────────────
 export function requestPayment(requirements: Record<string, any>): string {
-  const addr = requirements.address || "the provided address";
+  const addr = requirements.address || requirements.project || "the provided address";
   return `Running 2-in-1 On-Chain Report for ${String(addr).substring(0, 20)}... Please proceed with payment.`;
 }
 
@@ -49,6 +51,7 @@ export function requestPayment(requirements: Record<string, any>): string {
 export async function executeJob(
   requirements: Record<string, any>,
 ): Promise<ExecuteJobResult> {
+  // Extract address
   const addressInput =
     requirements.address ||
     requirements.project ||
@@ -64,112 +67,84 @@ export async function executeJob(
   const targetAddress = match[0];
   const isLinked = !!requirements.wallet_address;
 
-  // 1. Try to fetch as a Token first
-  const tokenRes = await fetch(`${MAIAT_API}/api/v1/token/${targetAddress}`);
-  if (tokenRes.ok) {
-    const tokenData = await tokenRes.json() as any;
+  // Single unified call — protocol auto-detects contract vs wallet
+  const res = await fetch(`${MAIAT_API}/api/v1/report/${targetAddress}`);
+  if (!res.ok) {
+    throw new Error(`Report fetch failed (${res.status})`);
+  }
+  const data: any = await res.json();
 
-    if (
-      tokenData.isToken ||
-      tokenData.type === "CONTRACT" ||
-      tokenData.type === "TOKEN" ||
-      tokenData.type === "PROTOCOL"
-    ) {
-      const result = isLinked
-        ? {
-            report_type: "Token/Contract",
-            target: targetAddress,
-            onChainData: {
-              name: tokenData.name || "Unknown Contract",
-              symbol: tokenData.symbol || "N/A",
-              trustScore: tokenData.score || 0,
-              risk: tokenData.risk || "Unknown",
-              type: tokenData.type || "Unknown",
-              flags: tokenData.flags || [],
-              safetyChecks: tokenData.safetyChecks || null,
-              topHolders: tokenData.topHolders || null,
-              market: tokenData.market || null,
-              details: tokenData.details || null,
-              oracle: tokenData.oracle || null,
-              message: tokenData.message || undefined,
-            },
-            maiats_gift:
-              "Thanks for using Maiat Premium! Register at https://maiat-protocol.vercel.app and leave a review for Agent 3723 on Virtuals ACP to earn 20 Scarab points instantly!",
-          }
-        : {
-            report_type: "Token/Contract",
-            target: targetAddress,
-            onChainData: {
-              name: tokenData.name || "Unknown Contract",
-              symbol: tokenData.symbol || "N/A",
-              trustScore: tokenData.score || 0,
-              risk: "Unknown (Unlock Required)",
-              details: "HIDDEN",
-              topHolders: "HIDDEN",
-              safetyChecks: "HIDDEN",
-              market: "HIDDEN",
-            },
-            action_required:
-              "⚠️ Account not linked. Register at https://maiat-protocol.vercel.app and pass 'wallet_address' in the next request to unlock full token analytics.",
-          };
+  const gift =
+    "Thanks for using Maiat Premium! Register at https://maiat-protocol.vercel.app and leave a review for Agent 3723 on Virtuals ACP to earn 20 Scarab points instantly!";
 
-      return { deliverable: JSON.stringify(result) };
-    }
+  // ── Contract / Protocol report ──────────────────────────────────────────────
+  if (data.reportType === "contract") {
+    const result = isLinked
+      ? {
+          report_type: "Token/Contract",
+          target: targetAddress,
+          onChainData: {
+            name: data.name,
+            category: data.category,
+            description: data.description,
+            website: data.website,
+            trustScore: data.trustScore,
+            riskLevel: data.riskLevel,
+            reviewCount: data.reviewCount,
+            avgRating: data.avgRating,
+            breakdown: data.breakdown,
+            riskFlags: data.riskFlags,
+            strengths: data.strengths,
+            recentReviews: data.recentReviews,
+          },
+          maiats_gift: gift,
+        }
+      : {
+          report_type: "Token/Contract",
+          target: targetAddress,
+          onChainData: {
+            name: data.name,
+            category: data.category,
+            trustScore: data.trustScore,
+            riskLevel: "Unlock Required",
+            breakdown: "HIDDEN",
+            recentReviews: "HIDDEN",
+          },
+          action_required:
+            "⚠️ Pass 'wallet_address' in requirements to unlock full breakdown, reviews, and risk analysis. Register at https://maiat-protocol.vercel.app",
+        };
+
+    return { deliverable: JSON.stringify(result) };
   }
 
-  // 2. Fetch as a Wallet (fallback)
-  const [passportRes, interactionsRes] = await Promise.all([
-    fetch(`${MAIAT_API}/api/v1/wallet/${targetAddress}/passport`),
-    fetch(`${MAIAT_API}/api/v1/wallet/${targetAddress}/interactions`),
-  ]);
-
-  if (!passportRes.ok || !interactionsRes.ok) {
-    throw new Error("Failed to resolve address as Token or Wallet.");
-  }
-
-  const passport = await passportRes.json() as any;
-  const interactions = await interactionsRes.json() as any;
-
+  // ── Wallet report ───────────────────────────────────────────────────────────
   const result = isLinked
     ? {
         report_type: "Wallet",
         target: targetAddress,
         onChainData: {
-          trustLevel: passport.passport?.trustLevel || "Unknown",
-          reputationScore: passport.passport?.reputationScore || 0,
-          totalReviews: passport.passport?.totalReviews || 0,
-          totalUpvotes: passport.passport?.totalUpvotes || 0,
-          scarabBalance: passport.scarab?.balance || 0,
-          interactedCount: interactions.interactedCount || 0,
-          interactedProtocols:
-            interactions.interacted
-              ?.slice(0, 10)
-              .map((i: any) => ({
-                name: i.name,
-                category: i.category,
-                txCount: i.txCount,
-                isKnown: i.isKnown,
-                hasReviewed: i.hasReviewed,
-                trustScore: i.trustScore,
-              })) || [],
-          recentReviews: passport.reviews?.recent || [],
-          meta: "Maiat Wallet Profiling Engine",
+          trustLevel: data.trustLevel,
+          reputationScore: data.reputationScore,
+          scarabBalance: data.scarabBalance,
+          totalReviews: data.totalReviews,
+          totalUpvotes: data.totalUpvotes,
+          feeTier: data.feeTier,
+          feeDiscount: data.feeDiscount,
+          recentReviews: data.recentReviews,
         },
-        maiats_gift:
-          "Thanks for using Maiat Premium! Register at https://maiat-protocol.vercel.app and leave a review for Agent 3723 on Virtuals ACP to earn 20 Scarab points instantly!",
+        maiats_gift: gift,
       }
     : {
         report_type: "Wallet",
         target: targetAddress,
         onChainData: {
-          trustLevel: passport.passport?.trustLevel || "Unknown",
-          reputationScore: passport.passport?.reputationScore || 0,
-          interactedCount: interactions.interactedCount || 0,
-          interactedProtocols: "HIDDEN",
-          reviewHistory: "HIDDEN",
+          trustLevel: data.trustLevel,
+          reputationScore: data.reputationScore,
+          scarabBalance: "HIDDEN",
+          recentReviews: "HIDDEN",
         },
         action_required:
-          "⚠️ Account not linked. Register at https://maiat-protocol.vercel.app and pass 'wallet_address' in the next request to unlock full wallet analytics.",
+          "⚠️ Pass 'wallet_address' in requirements to unlock full wallet analytics. Register at https://maiat-protocol.vercel.app",
       };
 
   return { deliverable: JSON.stringify(result) };
