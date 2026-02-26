@@ -1,13 +1,10 @@
 /**
  * Maiat Deep Insight — ACP Seller Handler
  *
- * Premium service ($0.10): Full trust analysis powered by Qwen3.5-Flash.
- * - Trust score from Maiat API
- * - AI deep analysis via Qwen3.5-Flash (1M context, OpenAI-compatible)
- * - Graceful fallback if Qwen key not set
- *
- * Set QWEN_API_KEY in Railway env to enable AI analysis.
- * Get free key: https://dashscope.aliyuncs.com (1M tokens/month free)
+ * Premium service ($0.10): Full trust analysis powered by Google Gemini Flash.
+ * - Trust score from Maiat Protocol API
+ * - AI deep analysis via Gemini 2.0 Flash
+ * - Graceful fallback if GEMINI_API_KEY not set
  */
 
 import type {
@@ -17,30 +14,29 @@ import type {
 
 const MAIAT_API =
   process.env.MAIAT_API_URL || "https://maiat-protocol.vercel.app";
-const QWEN_API_KEY = process.env.QWEN_API_KEY || "";
-const QWEN_BASE_URL =
-  "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
+const GEMINI_URL =
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
 
 // ── Validation ────────────────────────────────────────────────────────────────
 export function validateRequirements(
   requirements: Record<string, any>,
 ): ValidationResult {
-  // Accept anything — executeJob handles empty inputs gracefully
   return { valid: true };
 }
 
 // ── Payment message ───────────────────────────────────────────────────────────
 export function requestPayment(requirements: Record<string, any>): string {
   const project = requirements.project || requirements.address || "your project";
-  return `Running Deep Insight Report for "${String(project).substring(0, 60)}" with Qwen3.5 AI analysis. Please proceed with payment.`;
+  return `Running Deep Insight Report for "${String(project).substring(0, 60)}" with Gemini AI analysis. Please proceed with payment.`;
 }
 
-// ── Qwen AI Analysis ──────────────────────────────────────────────────────────
-async function runQwenAnalysis(
+// ── Gemini AI Analysis ────────────────────────────────────────────────────────
+async function runGeminiAnalysis(
   project: string,
   trustData: any,
 ): Promise<string | null> {
-  if (!QWEN_API_KEY) return null;
+  if (!GEMINI_API_KEY) return null;
 
   const prompt = `You are Maiat, a crypto trust analyst. Analyze this project and give a concise, actionable deep insight report.
 
@@ -61,24 +57,22 @@ Provide:
 Keep it under 150 words. Be direct, not diplomatic.`;
 
   try {
-    const res = await fetch(QWEN_BASE_URL, {
+    const res = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${QWEN_API_KEY}`,
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "qwen3.5-flash",
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 300,
-        temperature: 0.3,
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          maxOutputTokens: 300,
+          temperature: 0.3,
+        },
       }),
-      signal: AbortSignal.timeout(10000),
+      signal: AbortSignal.timeout(10_000),
     });
 
     if (!res.ok) return null;
     const data: any = await res.json();
-    return data?.choices?.[0]?.message?.content ?? null;
+    return data?.candidates?.[0]?.content?.parts?.[0]?.text ?? null;
   } catch {
     return null;
   }
@@ -88,7 +82,6 @@ Keep it under 150 words. Be direct, not diplomatic.`;
 export async function executeJob(
   requirements: Record<string, any>,
 ): Promise<ExecuteJobResult> {
-  // Extract project from any field buyers might use
   let project =
     requirements.project ||
     requirements.address ||
@@ -105,20 +98,18 @@ export async function executeJob(
     }
   }
 
-  // Graceful fallback for empty requirements
   if (!project || String(project).trim() === "" || String(project).trim() === "undefined") {
-    const result = {
-      trustScore: null,
-      riskLevel: "Unknown",
-      recommendation: "Please provide a project name or 0x contract address.",
-      usage: 'Pass { project: "AIXBT" } or { project: "0x..." } as requirements.',
-      aiAnalysis: null,
-      poweredBy: "Maiat Protocol + Qwen3.5-Flash",
+    return {
+      deliverable: JSON.stringify({
+        trustScore: null,
+        riskLevel: "Unknown",
+        recommendation: "Please provide a project name or 0x contract address.",
+        usage: 'Pass { project: "AIXBT" } or { project: "0x..." } as requirements.',
+        aiAnalysis: null,
+        poweredBy: "Maiat Protocol + Gemini Flash",
+      }),
     };
-    return { deliverable: JSON.stringify(result) };
   }
-
-  const depth = requirements.depth || "deep";
 
   // 1. Get trust score from Maiat API
   let trustData: any = null;
@@ -130,11 +121,11 @@ export async function executeJob(
       trustData = await scoreRes.json();
     }
   } catch {
-    // Non-fatal — proceed with AI analysis even without score
+    // Non-fatal
   }
 
-  // 2. Run Qwen3.5-Flash AI analysis (replaces 0G stub)
-  const aiAnalysis = await runQwenAnalysis(String(project), trustData);
+  // 2. Run Gemini AI analysis
+  const aiAnalysis = await runGeminiAnalysis(String(project), trustData);
 
   const score = trustData?.trustScore ?? trustData?.data?.score ?? null;
   const riskLevel =
@@ -147,16 +138,13 @@ export async function executeJob(
     riskLevel,
     reviewCount: trustData?.reviewCount ?? trustData?.data?.metadata?.totalReviews ?? 0,
     avgRating: trustData?.avgRating ?? trustData?.data?.metadata?.avgRating ?? null,
-    sentiment: trustData?.sentiment ?? null,
     strengths: trustData?.strengths ?? [],
     concerns: trustData?.concerns ?? [],
     aiAnalysis: aiAnalysis ?? {
-      note: "AI analysis not available — set QWEN_API_KEY in Railway env to enable.",
-      getKey: "https://dashscope.aliyuncs.com (1M tokens/month free)",
+      note: "AI analysis unavailable — GEMINI_API_KEY not configured.",
     },
-    analysisDepth: depth,
-    poweredBy: QWEN_API_KEY
-      ? "Maiat Protocol + Qwen3.5-Flash (Alibaba)"
+    poweredBy: GEMINI_API_KEY
+      ? "Maiat Protocol + Google Gemini 2.0 Flash"
       : "Maiat Protocol (AI analysis disabled)",
     dataSource: "Community reviews + on-chain analysis",
     learnMore: "https://maiat-protocol.vercel.app",
