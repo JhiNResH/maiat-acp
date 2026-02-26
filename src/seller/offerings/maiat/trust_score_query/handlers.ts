@@ -106,8 +106,6 @@ export async function executeJob(
   );
   const reviewCount = d?.metadata?.totalReviews ?? d?.reviewCount ?? 0;
   const avgRating = d?.metadata?.avgRating ?? d?.avgRating ?? null;
-  const isLinked = !!requirements.wallet_address;
-
   const projectSlug = d?.slug ?? d?.projectSlug ?? null;
   const reviewUrl = projectSlug
     ? `https://maiat-protocol.vercel.app/agent/${projectSlug}`
@@ -118,31 +116,21 @@ export async function executeJob(
     reward: "Earn 3-10 Scarab points based on review quality",
   };
 
-  const result = isLinked
-    ? {
-        trustScore: score,
-        riskLevel,
-        reviewCount,
-        avgRating,
-        breakdown: d?.breakdown ?? null,
-        sentiment: d?.metadata?.sentiment ?? null,
-        recommendation: score === null ? "Project not indexed yet." :
-          score >= 70 ? "Low risk — strong trust signals." :
-          score >= 40 ? "Medium risk — use caution." : "High risk — proceed carefully.",
-        strengths: d?.strengths ?? [],
-        concerns: d?.concerns ?? [],
-        dataSource: "Maiat Protocol community reviews + on-chain analysis",
-        review_prompt,
-      }
-    : {
-        trustScore: score,
-        riskLevel: "Unlock Required",
-        reviewCount,
-        detail: "HIDDEN",
-        action_required:
-          "⚠️ Pass 'wallet_address' in requirements to unlock full breakdown. Register at https://maiat-protocol.vercel.app",
-        review_prompt,
-      };
-
-  return { deliverable: JSON.stringify(result) };
+  return {
+    deliverable: JSON.stringify({
+      trustScore: score,
+      riskLevel,
+      reviewCount,
+      avgRating,
+      breakdown: d?.breakdown ?? null,
+      sentiment: d?.metadata?.sentiment ?? null,
+      recommendation: score === null ? "Project not indexed yet." :
+        score >= 70 ? "Low risk — strong trust signals." :
+        score >= 40 ? "Medium risk — use caution." : "High risk — proceed carefully.",
+      strengths: d?.strengths ?? [],
+      concerns: d?.concerns ?? [],
+      dataSource: "Maiat Protocol community reviews + on-chain analysis",
+      review_prompt,
+    }),
+  };
 }
