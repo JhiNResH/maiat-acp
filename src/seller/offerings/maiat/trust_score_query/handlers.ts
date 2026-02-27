@@ -5,20 +5,14 @@
  * We query our own /api/trust-score and return the result.
  */
 
-import type {
-  ExecuteJobResult,
-  ValidationResult,
-} from "../../../runtime/offeringTypes.js";
+import type { ExecuteJobResult, ValidationResult } from "../../../runtime/offeringTypes.js";
 import { hasERC8004Identity } from "../../../../lib/erc8004.js";
 
-const MAIAT_API =
-  process.env.MAIAT_API_URL || "https://maiat-protocol.vercel.app";
+const MAIAT_API = process.env.MAIAT_API_URL || "https://maiat-protocol.vercel.app";
 
 // ── Validation ────────────────────────────────────────────────────────────────
 // NOTE: must be named `validateRequirements` — the seller runtime looks for this exact export name.
-export function validateRequirements(
-  requirements: Record<string, any>,
-): ValidationResult {
+export function validateRequirements(requirements: Record<string, any>): ValidationResult {
   // Accept everything — even empty requirements.
   // executeJob handles gracefully with a helpful response.
   return { valid: true };
@@ -26,15 +20,12 @@ export function validateRequirements(
 
 // ── Payment message ───────────────────────────────────────────────────────────
 export function requestPayment(requirements: Record<string, any>): string {
-  const project =
-    requirements.project || requirements.message || "your request";
+  const project = requirements.project || requirements.message || "your request";
   return `Querying Maiat trust score for "${String(project).substring(0, 60)}". Please proceed with payment.`;
 }
 
 // ── Execution ─────────────────────────────────────────────────────────────────
-export async function executeJob(
-  requirements: Record<string, any>,
-): Promise<ExecuteJobResult> {
+export async function executeJob(requirements: Record<string, any>): Promise<ExecuteJobResult> {
   let project = requirements.project;
 
   // Resolve project identifier from raw text
@@ -64,23 +55,26 @@ export async function executeJob(
       reviewCount: 0,
       recommendation: "Please provide a project name or 0x contract address.",
       usage: 'Pass { project: "AIXBT" } or { project: "0x..." } as requirements.',
-      maiats_gift: "Maiat scores 10,000+ DeFi protocols and AI agents. Try: AIXBT, Virtuals, HeyAnon, Brian AI, Ethy, Wayfinder.",
+      maiats_gift:
+        "Maiat scores 10,000+ DeFi protocols and AI agents. Try: AIXBT, Virtuals, HeyAnon, Brian AI, Ethy, Wayfinder.",
     };
     return { deliverable: JSON.stringify(result) };
   }
 
-  const url = `${MAIAT_API}/api/trust-score?slug=${encodeURIComponent(String(project).substring(0, 100))}`;
+  // Use /api/v1/project/[slug] — returns DB-stored trustScore (Alchemy-computed, 0-100)
+  const url = `${MAIAT_API}/api/v1/project/${encodeURIComponent(String(project).substring(0, 100))}`;
   const res = await fetch(url);
 
   if (!res.ok) {
-    const err: any = await res.json().catch(() => ({}));
-    if (err.error === "Project not found" || res.status === 404) {
-      // Silently queue this unknown project for indexing
+    if (res.status === 404) {
+      // Queue for indexing and return helpful response
       fetch(`${MAIAT_API}/api/v1/project/queue`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: String(project), source: "trust_score_query" }),
-      }).catch(() => {/* fire-and-forget */});
+      }).catch(() => {
+        /* fire-and-forget */
+      });
 
       const result = {
         trustScore: null,
@@ -95,19 +89,19 @@ export async function executeJob(
       };
       return { deliverable: JSON.stringify(result) };
     }
+    const err: any = await res.json().catch(() => ({}));
     throw new Error(err.error || `Trust score query failed (${res.status})`);
   }
 
   const raw: any = await res.json();
-  // API returns { success, data: { score, breakdown, metadata, ... } }
-  const d = raw?.data ?? raw;
-  const score = d?.score ?? d?.trustScore ?? null;
-  const riskLevel = d?.riskLevel ?? (
-    score === null ? "Unknown" : score >= 70 ? "Low" : score >= 40 ? "Medium" : "High"
-  );
-  const reviewCount = d?.metadata?.totalReviews ?? d?.reviewCount ?? 0;
-  const avgRating = d?.metadata?.avgRating ?? d?.avgRating ?? null;
-  const projectSlug = d?.slug ?? d?.projectSlug ?? null;
+  // /api/v1/project/[slug] returns { project: { trustScore (0-100), name, slug, reviewCount, ... } }
+  const p = raw?.project ?? raw;
+  const score = p?.trustScore ?? null;
+  const riskLevel =
+    score === null ? "Unknown" : score >= 70 ? "Low" : score >= 40 ? "Medium" : "High";
+  const reviewCount = p?.reviewCount ?? 0;
+  const avgRating = p?.avgRating ?? null;
+  const projectSlug = p?.slug ?? null;
   const reviewUrl = projectSlug
     ? `https://maiat-protocol.vercel.app/agent/${projectSlug}`
     : `https://maiat-protocol.vercel.app/explore`;
@@ -128,22 +122,25 @@ export async function executeJob(
     }
   }
 
-  const riskEmoji = riskLevel === "Low" ? "🟢" : riskLevel === "Medium" ? "🟡" : riskLevel === "High" ? "🔴" : "⚪";
-  const recommendation = score === null ? "Project not indexed yet." :
-    score >= 70 ? "Low risk — strong trust signals." :
-    score >= 40 ? "Medium risk — use caution." : "High risk — proceed carefully.";
+  const riskEmoji =
+    riskLevel === "Low" ? "🟢" : riskLevel === "Medium" ? "🟡" : riskLevel === "High" ? "🔴" : "⚪";
+  const recommendation =
+    score === null
+      ? "Project not indexed yet."
+      : score >= 70
+        ? "Low risk — strong trust signals."
+        : score >= 40
+          ? "Medium risk — use caution."
+          : "High risk — proceed carefully.";
 
-  const breakdown = d?.breakdown ?? null;
-  const breakdownSection = breakdown
-    ? `\n## Score Breakdown\n${Object.entries(breakdown).map(([k, v]) => `- **${k}**: ${v}`).join("\n")}`
-    : "";
+  const chain = p?.chain ?? "Base";
+  const breakdownSection =
+    score !== null
+      ? `\n## Score Details\n- **Chain**: ${chain}\n- **Category**: ${p?.category ?? "Unknown"}`
+      : "";
 
-  const strengthsList = (d?.strengths ?? []) as string[];
-  const concernsList = (d?.concerns ?? []) as string[];
-  const strengthsSection = strengthsList.length > 0
-    ? `\n## Strengths\n${strengthsList.map((s: string) => `- ${s}`).join("\n")}` : "";
-  const concernsSection = concernsList.length > 0
-    ? `\n## Concerns\n${concernsList.map((c: string) => `- ${c}`).join("\n")}` : "";
+  const strengthsSection = "";
+  const concernsSection = "";
 
   const erc8004Section = erc8004Verified
     ? `\n## On-Chain Identity\n- **ERC-8004 Verified**: ✅ Yes`
