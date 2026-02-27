@@ -7,21 +7,15 @@
  * - Graceful fallback if GEMINI_API_KEY not set
  */
 
-import type {
-  ExecuteJobResult,
-  ValidationResult,
-} from "../../../runtime/offeringTypes.js";
+import type { ExecuteJobResult, ValidationResult } from "../../../runtime/offeringTypes.js";
 
-const MAIAT_API =
-  process.env.MAIAT_API_URL || "https://maiat-protocol.vercel.app";
+const MAIAT_API = process.env.MAIAT_API_URL || "https://maiat-protocol.vercel.app";
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 const GEMINI_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
 
 // ── Validation ────────────────────────────────────────────────────────────────
-export function validateRequirements(
-  requirements: Record<string, any>,
-): ValidationResult {
+export function validateRequirements(requirements: Record<string, any>): ValidationResult {
   return { valid: true };
 }
 
@@ -32,10 +26,7 @@ export function requestPayment(requirements: Record<string, any>): string {
 }
 
 // ── Gemini AI Analysis ────────────────────────────────────────────────────────
-async function runGeminiAnalysis(
-  project: string,
-  trustData: any,
-): Promise<string | null> {
+async function runGeminiAnalysis(project: string, trustData: any): Promise<string | null> {
   if (!GEMINI_API_KEY) return null;
 
   const prompt = `You are Maiat, a crypto trust analyst. Analyze this project and give a concise, actionable deep insight report.
@@ -79,9 +70,7 @@ Keep it under 150 words. Be direct, not diplomatic.`;
 }
 
 // ── Execution ─────────────────────────────────────────────────────────────────
-export async function executeJob(
-  requirements: Record<string, any>,
-): Promise<ExecuteJobResult> {
+export async function executeJob(requirements: Record<string, any>): Promise<ExecuteJobResult> {
   let project =
     requirements.project ||
     requirements.address ||
@@ -111,28 +100,48 @@ export async function executeJob(
     };
   }
 
-  // 1. Get trust score from Maiat API
-  let trustData: any = null;
+  // 1. Get trust score from Maiat API — use /api/v1/project (DB-stored score, accurate)
+  let projectData: any = null;
   try {
-    const scoreRes = await fetch(
-      `${MAIAT_API}/api/trust-score?slug=${encodeURIComponent(String(project).substring(0, 100))}`,
+    const projectRes = await fetch(
+      `${MAIAT_API}/api/v1/project/${encodeURIComponent(String(project).substring(0, 100))}`
     );
-    if (scoreRes.ok) {
-      trustData = await scoreRes.json();
+    if (projectRes.ok) {
+      const raw = await projectRes.json();
+      projectData = raw?.project ?? raw;
     }
   } catch {
     // Non-fatal
   }
 
+  // Build trustData shape for Gemini prompt
+  const trustData = projectData
+    ? {
+        trustScore: projectData.trustScore ?? null,
+        riskLevel:
+          projectData.trustScore == null
+            ? "Unknown"
+            : projectData.trustScore >= 70
+              ? "Low"
+              : projectData.trustScore >= 40
+                ? "Medium"
+                : "High",
+        reviewCount: projectData.reviewCount ?? 0,
+        avgRating: projectData.avgRating ?? null,
+        strengths: [],
+        concerns: [],
+      }
+    : null;
+
   // 2. Run Gemini AI analysis
   const aiAnalysis = await runGeminiAnalysis(String(project), trustData);
 
-  const score = trustData?.trustScore ?? trustData?.data?.score ?? null;
+  const score = projectData?.trustScore ?? null;
   const riskLevel =
     trustData?.riskLevel ??
     (score === null ? "Unknown" : score >= 70 ? "Low" : score >= 40 ? "Medium" : "High");
 
-  const projectSlug = (trustData?.data?.projectSlug ?? trustData?.projectSlug ?? null) as string | null;
+  const projectSlug = (projectData?.slug ?? null) as string | null;
   const reviewUrl = projectSlug
     ? `https://maiat-protocol.vercel.app/agent/${projectSlug}`
     : `https://maiat-protocol.vercel.app/explore`;
@@ -141,10 +150,10 @@ export async function executeJob(
     project,
     trustScore: score,
     riskLevel,
-    reviewCount: trustData?.reviewCount ?? trustData?.data?.metadata?.totalReviews ?? 0,
-    avgRating: trustData?.avgRating ?? trustData?.data?.metadata?.avgRating ?? null,
-    strengths: trustData?.strengths ?? [],
-    concerns: trustData?.concerns ?? [],
+    reviewCount: projectData?.reviewCount ?? 0,
+    avgRating: projectData?.avgRating ?? null,
+    strengths: [],
+    concerns: [],
     aiAnalysis: aiAnalysis ?? {
       note: "AI analysis unavailable — GEMINI_API_KEY not configured.",
     },
