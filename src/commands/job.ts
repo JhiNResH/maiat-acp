@@ -10,6 +10,11 @@ import { formatPrice } from "../lib/config.js";
 import * as output from "../lib/output.js";
 import { getBountyByJobId } from "../lib/bounty.js";
 
+function renderDeliverable(deliverable: unknown): string {
+  if (typeof deliverable === "string") return deliverable;
+  return JSON.stringify(deliverable);
+}
+
 export async function create(
   agentWalletAddress: string,
   jobOfferingName: string,
@@ -31,14 +36,10 @@ export async function create(
     output.output(job.data, (data) => {
       output.heading("Job Created");
       output.field("Job ID", data.data?.jobId ?? data.jobId);
-      output.log(
-        "\n  Job submitted. Use `acp job status <jobId>` to check progress.\n"
-      );
+      output.log("\n  Job submitted. Use `acp job status <jobId>` to check progress.\n");
     });
   } catch (e) {
-    output.fatal(
-      `Failed to create job: ${e instanceof Error ? e.message : String(e)}`
-    );
+    output.fatal(`Failed to create job: ${e instanceof Error ? e.message : String(e)}`);
   }
 }
 
@@ -56,23 +57,16 @@ export async function status(jobId: string): Promise<void> {
 
     const data = job.data.data;
 
-    if (job.data.errors) {
+    if (job.data.errors && job.data.errors.length > 0) {
       output.output(job.data.errors, (errors) => {
-        output.heading(`Job ${jobId}`);
-        errors.forEach((error: string, i: number) =>
-          output.field(`Error ${i + 1}`, error)
-        );
+        output.heading(`Job ${jobId} messages`);
+        errors.forEach((error: string, i: number) => output.field(`Error ${i + 1}`, error));
       });
-      return;
+      // return;
     }
 
     const memoHistory = (data.memos || []).map(
-      (memo: {
-        nextPhase: string;
-        content: string;
-        createdAt: string;
-        status: string;
-      }) => ({
+      (memo: { nextPhase: string; content: string; createdAt: string; status: string }) => ({
         nextPhase: memo.nextPhase,
         content: memo.content,
         createdAt: memo.createdAt,
@@ -93,14 +87,14 @@ export async function status(jobId: string): Promise<void> {
     const linkedBountyId = getBountyByJobId(String(result.jobId))?.bountyId;
 
     output.output(result, (r) => {
-      output.heading(`Job ${r.jobId}`);
+      output.heading(`Job ${r.jobId} details`);
       output.field("Phase", r.phase);
       output.field("Client", r.clientName || "-");
       output.field("Client Wallet", r.clientWalletAddress || "-");
       output.field("Provider", r.providerName || "-");
       output.field("Provider Wallet", r.providerWalletAddress || "-");
       if (r.deliverable) {
-        output.log(`\n  Deliverable:\n    ${r.deliverable}`);
+        output.log(`\n  Deliverable:\n    ${renderDeliverable(r.deliverable)}`);
       }
       if (r.memoHistory.length > 0) {
         output.log("\n  History:");
@@ -109,19 +103,13 @@ export async function status(jobId: string): Promise<void> {
         }
       }
       if (linkedBountyId) {
-        output.log(
-          `\n  This job is linked to bounty ${linkedBountyId}.`
-        );
-        output.log(
-          `  Run \`acp bounty status ${linkedBountyId}\` to sync bounty status.\n`
-        );
+        output.log(`\n  This job is linked to bounty ${linkedBountyId}.`);
+        output.log(`  Run \`acp bounty status ${linkedBountyId}\` to sync bounty status.\n`);
       }
       output.log("");
     });
   } catch (e) {
-    output.fatal(
-      `Failed to get job status: ${e instanceof Error ? e.message : String(e)}`
-    );
+    output.fatal(`Failed to get job status: ${e instanceof Error ? e.message : String(e)}`);
   }
 }
 
@@ -161,8 +149,7 @@ export async function active(options: JobListOptions = {}): Promise<void> {
         output.field("Job ID", j.id);
         if (j.phase) output.field("Phase", j.phase);
         if (j.name) output.field("Name", j.name);
-        if (j.price != null)
-          output.field("Price", formatPrice(j.price, j.priceType));
+        if (j.price != null) output.field("Price", formatPrice(j.price, j.priceType));
         if (j.clientAddress) output.field("Client", j.clientAddress);
         if (j.providerAddress) output.field("Provider", j.providerAddress);
         if (j.deliverable) output.field("Deliverable", j.deliverable);
@@ -170,9 +157,7 @@ export async function active(options: JobListOptions = {}): Promise<void> {
       }
     });
   } catch (e) {
-    output.fatal(
-      `Failed to get active jobs: ${e instanceof Error ? e.message : String(e)}`
-    );
+    output.fatal(`Failed to get active jobs: ${e instanceof Error ? e.message : String(e)}`);
   }
 }
 
@@ -181,12 +166,9 @@ export async function completed(options: JobListOptions = {}): Promise<void> {
     const params: Record<string, number> = {};
     if (options.page != null) params.page = options.page;
     if (options.pageSize != null) params.pageSize = options.pageSize;
-    const res = await client.get<{ data: JobListItem[] }>(
-      "/acp/jobs/completed",
-      {
-        params,
-      }
-    );
+    const res = await client.get<{ data: JobListItem[] }>("/acp/jobs/completed", {
+      params,
+    });
     const jobs = res.data.data;
 
     output.output({ jobs }, ({ jobs: list }) => {
@@ -198,8 +180,7 @@ export async function completed(options: JobListOptions = {}): Promise<void> {
       for (const j of list) {
         output.field("Job ID", j.id);
         if (j.name) output.field("Name", j.name);
-        if (j.price != null)
-          output.field("Price", formatPrice(j.price, j.priceType));
+        if (j.price != null) output.field("Price", formatPrice(j.price, j.priceType));
         if (j.clientAddress) output.field("Client", j.clientAddress);
         if (j.providerAddress) output.field("Provider", j.providerAddress);
         if (j.deliverable) output.field("Deliverable", j.deliverable);
@@ -207,9 +188,6 @@ export async function completed(options: JobListOptions = {}): Promise<void> {
       }
     });
   } catch (e) {
-    output.fatal(
-      `Failed to get completed jobs: ${e instanceof Error ? e.message : String(e)
-      }`
-    );
+    output.fatal(`Failed to get completed jobs: ${e instanceof Error ? e.message : String(e)}`);
   }
 }

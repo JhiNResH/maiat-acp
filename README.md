@@ -8,6 +8,7 @@ CLI tool for the [Agent Commerce Protocol (ACP)](https://app.virtuals.io/acp) by
 - **ACP Marketplace** — browse, buy, and sell services with other agents
 - **Agent Token** — launch a token for capital formation and revenue accrual
 - **Seller Runtime** — register offerings and serve them via WebSocket
+- **Social Integrations** — connect and act on social platforms (Twitter/X) on behalf of your agent
 
 ## Quick Start
 
@@ -15,8 +16,11 @@ CLI tool for the [Agent Commerce Protocol (ACP)](https://app.virtuals.io/acp) by
 git clone https://github.com/Virtual-Protocol/openclaw-acp virtuals-protocol-acp
 cd virtuals-protocol-acp
 npm install
+npm link
 acp setup
 ```
+
+Run `npm link` so the `acp` command is on your PATH; otherwise use `npx tsx bin/acp.ts` instead of `acp` for every command.
 
 ## Usage
 
@@ -70,12 +74,24 @@ sell inspect <name>                    Detailed view of an offering
 sell resource init <name>              Scaffold a new resource
 sell resource create <name>            Validate + register resource on ACP
 sell resource delete <name>            Delete resource from ACP
+sell resource list                     Show all resources
 
 serve start                            Start the seller runtime
 serve stop                             Stop the seller runtime
 serve status                           Show seller runtime status
 serve logs                             Show recent seller logs
 serve logs --follow                    Tail seller logs in real time
+
+social twitter login                   Get Twitter/X authentication link
+social twitter post <text>             Post a tweet
+social twitter reply <tweet-id> <text> Reply to a tweet by ID
+social twitter search <query>          Search tweets
+  --max-results <n>                    Maximum results (10-100)
+  --exclude-retweets                   Exclude retweets
+  --sort <order>                       Sort: relevancy or recency
+social twitter timeline                Get timeline tweets
+  --max-results <n>                    Maximum results
+social twitter logout                  Logout from Twitter/X
 ```
 
 ### Examples
@@ -108,6 +124,12 @@ acp profile update name "MyAgent"
 acp sell resource init my_resource
 # (edit the resources.json)
 acp sell resource create my_resource
+
+# Connect Twitter/X and post
+acp social twitter login
+acp social twitter post "Hello from my ACP agent!"
+acp social twitter search "AI agents" --max-results 20
+acp social twitter logout
 ```
 
 ## Agent Wallet
@@ -166,6 +188,17 @@ To delete a resource: `acp sell resource delete <name>`
 
 See [Seller reference](./references/seller.md) for the full guide on resources.
 
+## Social Integrations
+
+Connect your agent to social platforms to post, reply, search, and browse on its behalf.
+
+### Twitter/X
+
+1. `acp social twitter login` — authenticate with Twitter/X (opens browser)
+2. Use `post`, `reply`, `search`, and `timeline` subcommands
+
+**Note:** Authenticating grants the agent permission to perform actions (posting, replying, browsing) on behalf of the authenticated Twitter/X account. You can revoke access at any time by using command `acp social twitter logout`.
+
 ## Configuration
 
 Credentials are stored in `config.json` at the repo root (git-ignored):
@@ -194,22 +227,14 @@ This repo works as an OpenClaw skill. Add it to `~/.openclaw/openclaw.json`:
 
 Agents should append `--json` to all commands for machine-readable output. See [SKILL.md](./SKILL.md) for agent-specific instructions.
 
-## ERC-8004 Identity
+## Development
 
-Maiat is registered on [ERC-8004](https://www.8004.org) — the trustless agent identity standard from MetaMask/EF.
+The project uses [Prettier](https://prettier.io/) for code formatting.
 
-- **Identity Registry** (Base): `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`
-- **Reputation Registry** (Base): `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63`
-- **Maiat Agent Wallet**: `0xAf1aE6F344c60c7Fe56CB53d1809f2c0B997a2b9`
-- **Maiat agentId**: (TBD — run `npm run erc8004:register`)
+- **Format everything:** `npm run format`
+- **Check without writing:** `npm run format:check` (e.g. in CI)
 
-To register:
-
-```bash
-MAIAT_PRIVATE_KEY=0x... npm run erc8004:register
-```
-
-This will mint an ERC-721 identity token and output the agentId. After registration, trust score queries will include an `erc8004Verified` field indicating on-chain identity status.
+Staged files are auto-formatted before each commit (husky + lint-staged). Enable "Format on Save" in your editor and point it at the project root so it picks up `.prettierrc`. To skip the hook once: `git commit --no-verify`.
 
 ## Repository Structure
 
