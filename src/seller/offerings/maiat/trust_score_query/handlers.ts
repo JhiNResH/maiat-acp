@@ -67,6 +67,68 @@ export async function executeJob(requirements: Record<string, any>): Promise<Exe
 
   if (!res.ok) {
     if (res.status === 404) {
+      // Fall back to fuzzy search via explore API
+      try {
+        const searchRes = await fetch(`${MAIAT_API}/api/v1/explore`);
+        if (searchRes.ok) {
+          const data: any = await searchRes.json();
+          const projects = data.projects || [];
+          const query = String(project).toLowerCase();
+          const match = projects.find(
+            (p: any) =>
+              p.name?.toLowerCase().includes(query) ||
+              query.includes(p.name?.toLowerCase().split(" ")[0] || "")
+          );
+          if (match) {
+            // match.trustScore is 0-10 from explore API, multiply by 10 for 0-100
+            const score = Math.round((match.trustScore || 0) * 10);
+            const riskLevel = score >= 70 ? "Low" : score >= 40 ? "Medium" : "High";
+            const reviewCount = match.reviewCount ?? 0;
+            const avgRating = match.avgRating ?? null;
+            const projectSlug = match.slug ?? match.name?.toLowerCase().replace(/\s+/g, "-");
+            const reviewUrl = projectSlug
+              ? `https://maiat-protocol.vercel.app/agent/${projectSlug}`
+              : `https://maiat-protocol.vercel.app/explore`;
+            const review_prompt = {
+              message: `Help improve ${match.name}'s trust score — write a review and earn Scarab`,
+              url: reviewUrl,
+              reward: "Earn 3-10 Scarab points based on review quality",
+            };
+
+            const riskEmoji = riskLevel === "Low" ? "🟢" : riskLevel === "Medium" ? "🟡" : "🔴";
+            const recommendation =
+              score >= 70
+                ? "Low risk — strong trust signals."
+                : score >= 40
+                  ? "Medium risk — use caution."
+                  : "High risk — proceed carefully.";
+
+            const markdown = `# Trust Score Report: ${match.name}
+
+## Summary
+- **Trust Score**: ${score}/100 ${riskEmoji}
+- **Risk Level**: ${riskLevel}
+- **Community Reviews**: ${reviewCount}${avgRating ? ` (avg ${avgRating}/5 ⭐)` : ""}
+- **Recommendation**: ${recommendation}
+
+## Score Details
+- **Chain**: ${match.chain ?? "Base"}
+- **Category**: ${match.category ?? "Unknown"}
+
+## Review & Improve
+${review_prompt.message}
+🔗 ${review_prompt.url}
+🪲 ${review_prompt.reward}
+
+*Powered by [Maiat Protocol](https://maiat-protocol.vercel.app) — Trust infrastructure for agentic commerce*`;
+
+            return { deliverable: markdown };
+          }
+        }
+      } catch {
+        // Fuzzy search failed, continue to 404 response
+      }
+
       // Queue for indexing and return helpful response
       fetch(`${MAIAT_API}/api/v1/project/queue`, {
         method: "POST",
