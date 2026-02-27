@@ -157,16 +157,6 @@ export async function executeJob(
   const finalVerdict =
     dispute_rate !== null && dispute_rate > 20 ? "block" : verdict;
 
-  const result = {
-    // ── Core verdict ──
-    verdict: finalVerdict,
-    score: score ?? null,
-    threshold: effectiveThreshold,
-
-    // ── Agent-only signals ──
-    x402_checks: x402_checks ?? 0,
-    outcome_score: outcome_score ?? null,
-    dispute_rate: dispute_rate ?? null,
   const verdictEmoji = finalVerdict === "proceed" ? "🟢" : finalVerdict === "caution" ? "🟡" : "🔴";
   const verdictLabel = finalVerdict === "proceed" ? "PROCEED" : finalVerdict === "caution" ? "CAUTION" : "BLOCK";
 
