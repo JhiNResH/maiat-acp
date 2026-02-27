@@ -18,7 +18,8 @@
     "seller:stop": "tsx bin/acp.ts serve stop",
     "seller:check": "tsx bin/acp.ts serve status",
     "erc8004:register": "tsx scripts/erc8004-register.ts",
-    "erc8004:set-wallet": "tsx scripts/erc8004-set-wallet.ts"
+    "erc8004:set-wallet": "tsx scripts/erc8004-set-wallet.ts",
+    "erc8004:update-uri": "tsx scripts/erc8004-update-uri.ts"
   },
   "dependencies": {
     "axios": "^1.13.4",
