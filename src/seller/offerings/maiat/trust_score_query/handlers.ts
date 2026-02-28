@@ -20,31 +20,43 @@ export function validateRequirements(requirements: Record<string, any>): Validat
 
 // ── Payment message ───────────────────────────────────────────────────────────
 export function requestPayment(requirements: Record<string, any>): string {
-  const project = requirements.project || requirements.message || "your request";
+  const project =
+    requirements.project ||
+    requirements.query ||
+    requirements.symbol ||
+    requirements.token ||
+    requirements.name ||
+    requirements.message ||
+    "your request";
   return `Querying Maiat trust score for "${String(project).substring(0, 60)}". Please proceed with payment.`;
 }
 
 // ── Execution ─────────────────────────────────────────────────────────────────
 export async function executeJob(requirements: Record<string, any>): Promise<ExecuteJobResult> {
-  let project = requirements.project;
+  // Support common field names: project, query, symbol, name, address, token
+  let project =
+    requirements.project ||
+    requirements.query ||
+    requirements.symbol ||
+    requirements.token ||
+    requirements.name ||
+    requirements.address;
 
-  // Resolve project identifier from raw text
-  const rawText =
-    project ||
-    requirements.message ||
-    requirements.promo_message ||
-    Object.values(requirements).join(" ");
+  // Resolve project identifier from raw text only when no structured field found
+  if (!project) {
+    const rawText = requirements.message || requirements.promo_message || null;
 
-  if (rawText && rawText.length > 30) {
-    const addressMatch = rawText.match(/(0x[a-fA-F0-9]{40})/);
-    if (addressMatch?.[1]) {
-      project = addressMatch[1];
-    } else {
-      const match = rawText.match(/^([A-Za-z0-9]+)(?:\s+(?:—|-|\|)|\s+)/);
-      project = match?.[1] ?? rawText.split(" ")[0] ?? rawText;
+    if (rawText && rawText.length > 30) {
+      const addressMatch = rawText.match(/(0x[a-fA-F0-9]{40})/);
+      if (addressMatch?.[1]) {
+        project = addressMatch[1];
+      } else {
+        const match = rawText.match(/^([A-Za-z0-9]+)(?:\s+(?:—|-|\|)|\s+)/);
+        project = match?.[1] ?? rawText.split(" ")[0] ?? rawText;
+      }
+    } else if (rawText) {
+      project = rawText;
     }
-  } else if (!project && rawText) {
-    project = rawText;
   }
 
   // Graceful fallback — don't throw, return a helpful response so job completes
@@ -74,11 +86,18 @@ export async function executeJob(requirements: Record<string, any>): Promise<Exe
         if (searchRes.ok) {
           const data: any = await searchRes.json();
           const projects = data.projects || [];
-          const query = String(project).toLowerCase();
+          const query = String(project).toLowerCase().trim();
+          // 1. Exact slug match
+          // 2. Exact symbol match (p.symbol)
+          // 3. Name includes full query string
+          // 4. Query includes full project name (not just first word — prevents "virtual base" matching "Base USDC")
           const match = projects.find(
             (p: any) =>
+              p.slug?.toLowerCase() === query ||
+              p.symbol?.toLowerCase() === query ||
+              p.name?.toLowerCase() === query ||
               p.name?.toLowerCase().includes(query) ||
-              query.includes(p.name?.toLowerCase().split(" ")[0] || "")
+              (p.name && query.includes(p.name.toLowerCase()))
           );
           if (match) {
             // match.trustScore is 0-10 from explore API, multiply by 10 for 0-100
