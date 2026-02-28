@@ -61,9 +61,10 @@ export async function executeJob(requirements: Record<string, any>): Promise<Exe
     return { deliverable: JSON.stringify(result) };
   }
 
-  // Use /api/v1/project/[slug] — returns DB-stored trustScore (Alchemy-computed, 0-100)
-  const url = `${MAIAT_API}/api/v1/project/${encodeURIComponent(String(project).substring(0, 100))}`;
-  const res = await fetch(url);
+  // Use /api/v1/project/[slug]?realtime=1 — live DeFiLlama + DEXScreener + Basescan score,
+  // auto write-back to DB so downstream trust-check stays fresh.
+  const url = `${MAIAT_API}/api/v1/project/${encodeURIComponent(String(project).substring(0, 100))}?realtime=1`;
+  const res = await fetch(url, { signal: AbortSignal.timeout(15_000) });
 
   if (!res.ok) {
     if (res.status === 404) {
@@ -156,11 +157,15 @@ ${review_prompt.message}
   }
 
   const raw: any = await res.json();
-  // /api/v1/project/[slug] returns { project: { trustScore (0-100), name, slug, reviewCount, ... } }
+  // ?realtime=1 → { project: { trustScore, ... }, realtime: { score, grade, riskLevel, breakdown, signals, flags } }
   const p = raw?.project ?? raw;
+  const rt = raw?.realtime; // RealtimeTrustResult — present when live fetch succeeded
   const score = p?.trustScore ?? null;
+  // Prefer realtime riskLevel (computed from live data); fall back to simple threshold bands
   const riskLevel =
-    score === null ? "Unknown" : score >= 70 ? "Low" : score >= 40 ? "Medium" : "High";
+    rt?.riskLevel ??
+    (score === null ? "Unknown" : score >= 70 ? "Low" : score >= 40 ? "Medium" : "High");
+  const grade: string | null = rt?.grade ?? null;
   const reviewCount = p?.reviewCount ?? 0;
   const avgRating = p?.avgRating ?? null;
   const projectSlug = p?.slug ?? null;
@@ -196,13 +201,43 @@ ${review_prompt.message}
           : "High risk — proceed carefully.";
 
   const chain = p?.chain ?? "Base";
+  const gradeDisplay = grade ? ` · Grade **${grade}**` : "";
+
+  // Build enriched breakdown section from realtime data when available
+  const signals = rt?.signals;
+  const breakdown = rt?.breakdown;
+  const tvlStr = signals?.tvl != null ? `$${(signals.tvl / 1_000_000).toFixed(1)}M` : null;
+  const volStr = signals?.volume24h != null ? `$${(signals.volume24h / 1_000).toFixed(0)}K` : null;
+  const auditStr =
+    signals?.audited === true
+      ? `✅ Audited${signals.auditFirms?.length ? " by " + signals.auditFirms.join(", ") : ""}`
+      : signals?.audited === false
+        ? "❌ Not audited"
+        : null;
+  const flagStr = rt?.flags?.length ? rt.flags.join(", ") : null;
+
   const breakdownSection =
     score !== null
-      ? `\n## Score Details\n- **Chain**: ${chain}\n- **Category**: ${p?.category ?? "Unknown"}`
+      ? [
+          `\n## Score Breakdown${breakdown ? " (Live Data)" : ""}`,
+          `- **Chain**: ${chain} · **Category**: ${p?.category ?? "Unknown"}`,
+          breakdown
+            ? [
+                `- TVL/Liquidity:     ${breakdown.tvlLiquidity}/100`,
+                `- Audit/Code:        ${breakdown.auditCodeQuality}/100`,
+                `- Contract Safety:   ${breakdown.contractSafety}/100`,
+                `- Market Activity:   ${breakdown.marketActivity}/100`,
+                `- Community Reviews: ${breakdown.communityReviews}/100`,
+              ].join("\n")
+            : "",
+          tvlStr ? `- **TVL**: ${tvlStr}` : "",
+          volStr ? `- **24h Volume**: ${volStr}` : "",
+          auditStr ? `- **Audit**: ${auditStr}` : "",
+          flagStr ? `\n⚠️ **Risk Flags**: ${flagStr}` : "",
+        ]
+          .filter(Boolean)
+          .join("\n")
       : "";
-
-  const strengthsSection = "";
-  const concernsSection = "";
 
   const erc8004Section = erc8004Verified
     ? `\n## On-Chain Identity\n- **ERC-8004 Verified**: ✅ Yes`
@@ -211,11 +246,11 @@ ${review_prompt.message}
   const markdown = `# Trust Score Report: ${String(project).substring(0, 40)}
 
 ## Summary
-- **Trust Score**: ${score ?? "N/A"}/100 ${riskEmoji}
+- **Trust Score**: ${score ?? "N/A"}/100 ${riskEmoji}${gradeDisplay}
 - **Risk Level**: ${riskLevel}
 - **Community Reviews**: ${reviewCount}${avgRating ? ` (avg ${avgRating}/5 ⭐)` : ""}
 - **Recommendation**: ${recommendation}
-${breakdownSection}${strengthsSection}${concernsSection}${erc8004Section}
+${breakdownSection}${erc8004Section}
 
 ## Review & Improve
 ${review_prompt.message}
