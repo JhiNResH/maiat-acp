@@ -171,10 +171,10 @@ async function checkTokenTrust(
   tokenOut: string,
   headers: Record<string, string>
 ): Promise<TrustResult> {
-  const url = `${MAIAT_API}/api/v1/token/${tokenOut}/trust`;
+  const url = `${MAIAT_API}/api/v1/token/${tokenOut}`;
 
   const res = await fetch(url, {
-    method: "POST",
+    method: "GET",
     headers,
     signal: AbortSignal.timeout(15_000),
   });
