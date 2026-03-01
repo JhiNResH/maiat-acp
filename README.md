@@ -1,50 +1,47 @@
-# Scales — Maiat Protocol's ACP Agent
+# Maiat ACP Agent (Scales)
 
-**Scales** is the AI agent commercial layer for [Maiat Protocol](https://maiat-protocol.vercel.app) — the trust infrastructure for agentic commerce.
+**Scales** is the ACP seller agent for [Maiat Protocol](https://maiat-protocol.vercel.app) — the trust layer for the onchain economy.
 
-When another AI agent needs to verify a DeFi protocol or AI project before transacting, it hires Scales on the [ACP marketplace](https://app.virtuals.io/acp). Scales queries the Maiat trust engine and returns a structured trust report in seconds.
+Other AI agents hire Scales on the [Virtuals ACP marketplace](https://app.virtuals.io/acp) to check whether a token or agent is safe to transact with.
 
 ```
-Other Agent  →  hire Scales (ACP)  →  Maiat Protocol API  →  Trust Report
-                    pay USDC                                   (score, grade, risk flags)
+Buyer Agent  →  hire Scales (ACP)  →  Maiat Protocol API  →  Trust Score
+                   pay USDC                                    + verdict
 ```
+
+- **Agent ID:** 3723 on Virtuals ACP
+- **Wallet:** `0xAf1aE6F344c60c7Fe56CB53d1809f2c0B997a2b9` (Base)
+- **Deployed:** Railway (auto-deploy from `main`)
 
 ---
 
-## Offerings
+## Active Offerings
 
-| Offering              | Price | Description                                                                 |
-| --------------------- | ----- | --------------------------------------------------------------------------- |
-| `trust_score_query`   | $0.01 | Trust score (0–100), grade (A–F), risk level for any project                |
-| `trust_gate`          | $0.02 | Binary pass/fail gate — should your agent proceed with this counterparty?   |
-| `deep_insight_report` | $0.10 | Full analysis: breakdown, audit status, TVL, volume, community reviews      |
-| `onchain_report`      | $0.50 | Live on-chain data: verified source code, contract age, holder distribution |
-
-**Agent wallet:** `0xAf1aE6F344c60c7Fe56CB53d1809f2c0B997a2b9` (Base)
+| Offering      | Fee        | What it returns                                                                                       |
+| ------------- | ---------- | ----------------------------------------------------------------------------------------------------- |
+| `token_check` | $0.01 USDC | Honeypot detection, buy/sell tax, verdict (`proceed/caution/avoid`) for any ERC-20 token on Base      |
+| `agent_trust` | $0.02 USDC | ACP behavioral trust score (0–100) based on on-chain job history — completionRate, totalJobs, verdict |
+| `trust_swap`  | $0.05 USDC | Trust-verified Uniswap quote — runs `token_check` first, only returns calldata if safe                |
 
 ---
 
 ## Architecture
 
 ```
-maiat-protocol            ← trust data source
-├── DB (Supabase)         ← 100+ indexed projects
-├── Realtime engine       ← DeFiLlama + DEXScreener + Basescan
-├── Gemini AI             ← sentiment + review quality scoring
-└── REST API              ← /api/v1/project/[slug]?realtime=1
+maiat-protocol (API)
+├── /api/v1/token/:address   ← token_check calls here
+├── /api/v1/agent/:address   ← agent_trust calls here (on-demand + cached)
+└── /api/v1/swap/quote       ← trust_swap calls here
 
-scales (maiat-acp)        ← ACP commercial layer
-├── trust_score_query     ← calls /api/v1/project/:slug
-├── trust_gate            ← calls /api/v1/trust-check
-├── deep_insight_report   ← calls /api/v1/project/:slug?realtime=1
-└── onchain_report        ← calls score + on-chain data
+maiat-acp (this repo)        ← ACP seller runtime on Railway
+├── token_check/
+├── agent_trust/
+└── trust_swap/
 ```
-
-Scales earns USDC per job. Revenue flows to the Maiat Protocol treasury.
 
 ---
 
-## Setup (local dev)
+## Local Setup
 
 ```bash
 git clone https://github.com/JhiNResH/maiat-acp
@@ -52,72 +49,54 @@ cd maiat-acp
 npm install
 ```
 
-Create a `.env` file:
+`.env`:
 
 ```env
-LITE_AGENT_API_KEY=acp-your-key-here      # from app.virtuals.io/acp
+LITE_AGENT_API_KEY=acp-ce6fdc2f07bc8408be55
 MAIAT_API_URL=https://maiat-protocol.vercel.app
-GEMINI_API_KEY=your-gemini-key
-MAIAT_INTERNAL_TOKEN=your-internal-token
 ```
 
-Start the seller runtime:
+Start seller runtime:
 
 ```bash
 npm run serve
-# or: npx tsx src/seller/runtime/seller.ts
 ```
 
 ---
 
-## Deploy (Railway)
+## Railway Deploy
 
-This repo auto-deploys to Railway on push to `main`.
+Auto-deploys on push to `main`.
 
-Required Railway environment variables:
-
-| Variable               | Description                            |
-| ---------------------- | -------------------------------------- |
-| `LITE_AGENT_API_KEY`   | Virtuals ACP API key                   |
-| `MAIAT_API_URL`        | `https://maiat-protocol.vercel.app`    |
-| `GEMINI_API_KEY`       | Google Gemini API key                  |
-| `MAIAT_INTERNAL_TOKEN` | Internal auth token for maiat-protocol |
+| Env Var              | Value                               |
+| -------------------- | ----------------------------------- |
+| `LITE_AGENT_API_KEY` | `acp-ce6fdc2f07bc8408be55`          |
+| `MAIAT_API_URL`      | `https://maiat-protocol.vercel.app` |
 
 ---
 
-## Adding / Editing Offerings
+## Adding Offerings
 
-Each offering lives in `src/seller/offerings/maiat/<name>/`:
+Each offering is a folder in `src/seller/offerings/maiat/<name>/`:
 
 ```
-trust_score_query/
-├── offering.json    ← name, description, price, requirements schema
-└── handlers.ts      ← validateRequirements, requestPayment, executeJob
+token_check/
+├── offering.json   ← name, description, price, requirement schema
+└── handlers.ts     ← validateRequirements(), requestPayment(), executeJob()
 ```
 
-After editing:
+Register on ACP after adding:
 
-1. Update `offering.json`
-2. Update `handlers.ts`
-3. Push to `main` → Railway auto-deploys
-
----
-
-## Relationship to Maiat Protocol
-
-| Layer     | Repo                    | Role                                          |
-| --------- | ----------------------- | --------------------------------------------- |
-| Protocol  | `maiat-protocol`        | Trust data, scoring engine, Web UI, contracts |
-| ACP Agent | `maiat-acp` (this repo) | Commercial window on Virtuals ACP marketplace |
-| SDK       | `maiat-viem-guard`      | npm package for dApp/agent developers         |
-
-**Scales does not have its own token.** It is a commercial brand name for the maiat-protocol ACP presence. Protocol value accrues to `$MAIAT` token holders (planned).
+```bash
+acp sell create <offering-name>
+```
 
 ---
 
-## Links
+## Related Repos
 
-- **Maiat Protocol:** https://maiat-protocol.vercel.app
-- **Scales on ACP:** https://app.virtuals.io/acp/agent-details/3723
-- **Agent wallet:** `0xAf1aE6F344c60c7Fe56CB53d1809f2c0B997a2b9`
-- **Twitter:** [@0xmaiat](https://twitter.com/0xmaiat)
+| Repo                                                           | Role                              |
+| -------------------------------------------------------------- | --------------------------------- |
+| [`maiat-protocol`](https://github.com/JhiNResH/maiat-protocol) | Trust API, scoring engine, Web UI |
+| [`maiat-acp`](https://github.com/JhiNResH/maiat-acp) (this)    | ACP seller runtime                |
+| [`hermes-acp`](https://github.com/JhiNResH/hermes-acp)         | Travel arbitrage ACP agent        |

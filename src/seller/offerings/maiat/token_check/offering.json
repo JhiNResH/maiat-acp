@@ -1,0 +1,36 @@
+{
+  "name": "token_check",
+  "description": "Safety check for any ERC-20 token on Base. Detects honeypots, high buy/sell tax, and unverified contracts. Returns trust score 0-100, verdict (proceed/caution/avoid), risk flags, and a plain-English summary. Use before swapping into an unknown token.",
+  "jobFee": 0.01,
+  "jobFeeType": "fixed",
+  "requiredFunds": false,
+  "requirement": {
+    "type": "object",
+    "properties": {
+      "token": {
+        "type": "string",
+        "description": "0x contract address of the ERC-20 token to check (Base mainnet)"
+      }
+    },
+    "required": ["token"]
+  },
+  "deliverable": {
+    "type": "object",
+    "properties": {
+      "address": { "type": "string" },
+      "tokenType": { "type": "string", "description": "known_safe | agent_token | memecoin" },
+      "trustScore": { "type": "number", "description": "0-100" },
+      "verdict": { "type": "string", "description": "proceed | caution | avoid" },
+      "riskFlags": { "type": "array", "items": { "type": "string" } },
+      "riskSummary": { "type": "string" },
+      "honeypot": {
+        "type": "object",
+        "properties": {
+          "isHoneypot": { "type": "boolean" },
+          "buyTax": { "type": "number" },
+          "sellTax": { "type": "number" }
+        }
+      }
+    }
+  }
+}
