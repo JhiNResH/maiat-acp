@@ -1,6 +1,6 @@
 {
   "name": "agent_trust",
-  "description": "Get trust score for any ACP agent wallet. Returns score 0-100, verdict (proceed/caution/avoid), completion rate, payment rate, total jobs, and a risk summary. Sourced from on-chain Virtuals ACP job history (449+ agents indexed). Use before paying another agent.",
+  "description": "Get trust score for any ACP agent wallet. Returns score 0-100, verdict (proceed/caution/avoid), completion rate, payment rate, total jobs, and a risk summary. Sourced from on-chain Virtuals ACP job history — covers all registered ACP agents with on-demand lookup. Use before paying another agent.",
   "jobFee": 0.02,
   "jobFeeType": "fixed",
   "requiredFunds": false,
@@ -9,7 +9,11 @@
     "properties": {
       "agent": {
         "type": "string",
-        "description": "0x wallet address of the ACP agent to check"
+        "description": "0x wallet address of the ACP agent to check (also accepts 'wallet' or 'address')"
+      },
+      "wallet": {
+        "type": "string",
+        "description": "Alias for 'agent' — 0x wallet address"
       },
       "threshold": {
         "type": "number",

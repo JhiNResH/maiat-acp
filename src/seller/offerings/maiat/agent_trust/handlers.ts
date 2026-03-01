@@ -77,17 +77,23 @@ export async function executeJob(requirements: Record<string, unknown>): Promise
     }
 
     const data = (await res.json()) as Record<string, unknown>;
+    const breakdown = (data.breakdown ?? {}) as Record<string, unknown>;
 
-    const score = typeof data.score === "number" ? data.score : null;
-    const completionRate = typeof data.completionRate === "number" ? data.completionRate : null;
-    const paymentRate = typeof data.paymentRate === "number" ? data.paymentRate : null;
-    const totalJobs = typeof data.totalJobs === "number" ? data.totalJobs : 0;
-    const ageWeeks = typeof data.ageWeeks === "number" ? data.ageWeeks : null;
+    const score = typeof data.trustScore === "number" ? data.trustScore : null;
+    const completionRate =
+      typeof breakdown.completionRate === "number" ? breakdown.completionRate : null;
+    const paymentRate = typeof breakdown.paymentRate === "number" ? breakdown.paymentRate : null;
+    const totalJobs = typeof breakdown.totalJobs === "number" ? breakdown.totalJobs : 0;
+    const ageWeeks = typeof breakdown.ageWeeks === "number" ? breakdown.ageWeeks : null;
     const lastUpdated = typeof data.lastUpdated === "string" ? data.lastUpdated : null;
+    // Use API verdict if available
+    const apiVerdict = typeof data.verdict === "string" ? data.verdict : null;
 
-    // Determine verdict based on score and threshold
+    // Determine verdict — prefer API verdict, fall back to threshold logic
     let verdict: string;
-    if (score === null) {
+    if (apiVerdict && apiVerdict !== "unknown") {
+      verdict = apiVerdict;
+    } else if (score === null) {
       verdict = "unknown";
     } else if (score >= threshold) {
       verdict = "proceed";
@@ -141,11 +147,11 @@ export async function executeJob(requirements: Record<string, unknown>): Promise
  */
 function extractAgentAddress(requirements: Record<string, unknown>): string | null {
   // Direct field access
-  if (typeof requirements.agent === "string" && isValidAddress(requirements.agent)) {
-    return requirements.agent.toLowerCase();
-  }
-  if (typeof requirements.address === "string" && isValidAddress(requirements.address)) {
-    return requirements.address.toLowerCase();
+  for (const key of ["agent", "wallet", "address", "walletAddress"]) {
+    const val = requirements[key];
+    if (typeof val === "string" && isValidAddress(val)) {
+      return val.toLowerCase();
+    }
   }
 
   // Scan all string values for a 0x address
