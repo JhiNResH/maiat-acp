@@ -23,22 +23,54 @@ interface QuoteResult {
   value: string;
 }
 
+// ── Amount normalizer ─────────────────────────────────────────────────────────
+/**
+ * Accepts multiple formats and returns a wei BigInt string:
+ *   "0.01"           → "10000000000000000"  (ETH decimal, 18 decimals assumed)
+ *   "10000000000000000" → same (already wei)
+ *   0.01             → "10000000000000000"  (number)
+ */
+function normalizeAmountToWei(raw: unknown, decimals = 18): string | null {
+  let str: string;
+  if (typeof raw === "number") {
+    str = raw.toString();
+  } else if (typeof raw === "string") {
+    str = raw.trim();
+  } else {
+    return null;
+  }
+  if (!str || isNaN(Number(str))) return null;
+
+  // Already wei-like (no decimal, >10 digits)
+  if (/^\d+$/.test(str) && str.length > 10) return str;
+
+  // Decimal ETH → wei
+  const [intPart, fracPart = ""] = str.split(".");
+  const frac = (fracPart + "0".repeat(decimals)).slice(0, decimals);
+  const wei = BigInt(intPart || "0") * BigInt(10 ** decimals) + BigInt(frac);
+  return wei.toString();
+}
+
 // ── Validation ────────────────────────────────────────────────────────────────
 export function validateRequirements(requirements: Record<string, unknown>): ValidationResult {
-  const { tokenIn, tokenOut, amount, swapper } = requirements;
+  const tokenIn = requirements.tokenIn;
+  const tokenOut = requirements.tokenOut;
+  // Accept amountIn or amount
+  const rawAmount = requirements.amountIn ?? requirements.amount;
 
   if (!isValidAddress(tokenIn)) {
-    return { valid: false, reason: "Invalid tokenIn address. Must be a 0x address." };
+    return { valid: false, reason: "Invalid tokenIn address. Must be a 0x EVM address." };
   }
   if (!isValidAddress(tokenOut)) {
-    return { valid: false, reason: "Invalid tokenOut address. Must be a 0x address." };
+    return { valid: false, reason: "Invalid tokenOut address. Must be a 0x EVM address." };
   }
-  if (!amount || typeof amount !== "string" || !/^\d+$/.test(amount)) {
-    return { valid: false, reason: "Invalid amount. Must be a string of digits (wei)." };
+  if (!normalizeAmountToWei(rawAmount)) {
+    return {
+      valid: false,
+      reason: 'Invalid amount. Use ETH decimal ("0.01") or wei string ("10000000000000000").',
+    };
   }
-  if (!isValidAddress(swapper)) {
-    return { valid: false, reason: "Invalid swapper address. Must be a 0x address." };
-  }
+  // swapper is optional — defaults to a placeholder in execution
 
   return { valid: true };
 }
@@ -54,22 +86,21 @@ export function requestPayment(requirements: Record<string, unknown>): string {
 export async function executeJob(requirements: Record<string, unknown>): Promise<ExecuteJobResult> {
   const tokenIn = (requirements.tokenIn as string)?.toLowerCase();
   const tokenOut = (requirements.tokenOut as string)?.toLowerCase();
-  const amount = requirements.amount as string;
-  const swapper = (requirements.swapper as string)?.toLowerCase();
+  const rawAmount = requirements.amountIn ?? requirements.amount;
+  const amount = normalizeAmountToWei(rawAmount) ?? "0";
+  // swapper is optional — use a zero address placeholder if not provided
+  const swapper = isValidAddress(requirements.swapper)
+    ? (requirements.swapper as string).toLowerCase()
+    : "0x0000000000000000000000000000000000000000";
   const chainId = typeof requirements.chainId === "number" ? requirements.chainId : 8453;
-  const slippage = typeof requirements.slippage === "number" ? requirements.slippage : 0.005;
+  // slippage: accept both 0.5 (percentage) and 0.005 (factor)
+  const rawSlippage = typeof requirements.slippage === "number" ? requirements.slippage : 0.5;
+  const slippage = rawSlippage > 1 ? rawSlippage / 100 : rawSlippage;
 
-  // Validate inputs
-  if (
-    !isValidAddress(tokenIn) ||
-    !isValidAddress(tokenOut) ||
-    !amount ||
-    !isValidAddress(swapper)
-  ) {
+  if (!isValidAddress(tokenIn) || !isValidAddress(tokenOut) || amount === "0") {
     return {
       deliverable: JSON.stringify({
-        error:
-          "Invalid parameters. Required: tokenIn, tokenOut, amount (wei string), swapper (0x address)",
+        error: "Invalid parameters. Required: tokenIn, tokenOut, amountIn",
       }),
     };
   }
