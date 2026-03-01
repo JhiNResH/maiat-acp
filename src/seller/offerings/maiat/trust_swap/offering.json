@@ -1,0 +1,54 @@
+{
+  "name": "trust_swap",
+  "description": "Trust-verified token swap. Before returning Uniswap swap calldata, Maiat checks the output token for rug risk (honeypot detection, holder concentration, contract age, Scarab community reviews). Returns trust score + Uniswap quote + unsigned transaction calldata. You sign and submit yourself — Maiat never holds funds. Fee: $0.05 flat + 0.15% Uniswap referral included in calldata.",
+  "jobFee": 0.05,
+  "jobFeeType": "fixed",
+  "requiredFunds": false,
+  "requirement": {
+    "type": "object",
+    "properties": {
+      "tokenIn": {
+        "type": "string",
+        "description": "Input token address (e.g. USDC: 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913)"
+      },
+      "tokenOut": {
+        "type": "string",
+        "description": "Output token address to buy"
+      },
+      "amount": {
+        "type": "string",
+        "description": "Amount in wei/smallest unit of tokenIn"
+      },
+      "swapper": {
+        "type": "string",
+        "description": "Your wallet address (will receive tokenOut)"
+      },
+      "chainId": {
+        "type": "number",
+        "description": "Chain ID (default: 8453 Base)"
+      },
+      "slippage": {
+        "type": "number",
+        "description": "Slippage tolerance 0.0-1.0 (default: 0.005 = 0.5%)"
+      }
+    },
+    "required": ["tokenIn", "tokenOut", "amount", "swapper"]
+  },
+  "deliverable": {
+    "type": "object",
+    "properties": {
+      "trustScore": { "type": "number", "description": "Token trust score 0-100" },
+      "verdict": { "type": "string", "description": "safe | caution | risky | blocked" },
+      "riskFlags": { "type": "array", "items": { "type": "string" } },
+      "riskSummary": { "type": "string" },
+      "quote": { "type": "object", "description": "Uniswap quote (amountOut, priceImpact, route)" },
+      "calldata": {
+        "type": "string",
+        "description": "Unsigned Uniswap tx calldata — you sign and submit"
+      },
+      "to": { "type": "string", "description": "Universal Router address to send tx to" },
+      "value": { "type": "string", "description": "ETH value to include (0 for ERC20 swaps)" },
+      "warning": { "type": "string", "description": "Present if verdict is caution or risky" }
+    }
+  }
+}
