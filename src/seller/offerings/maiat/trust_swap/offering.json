@@ -1,6 +1,6 @@
 {
   "name": "trust_swap",
-  "description": "Trust-verified token swap. Before returning Uniswap swap calldata, Maiat checks the output token for rug risk (honeypot detection, holder concentration, contract age, Scarab community reviews). Returns trust score + Uniswap quote + unsigned transaction calldata. You sign and submit yourself — Maiat never holds funds. Fee: $0.05 flat + 0.15% Uniswap referral included in calldata.",
+  "description": "Trust-gated token swap: bundles token_check + Uniswap quote in one call. Before returning calldata, verifies the output token for honeypot risk, tax, and contract safety. Returns: trustScore, verdict, riskFlags, riskSummary, Uniswap quote (amountOut, priceImpact, route), unsigned calldata. You sign and submit — Maiat never holds funds. Use when: you want to swap but need safety verification first. If verdict is 'avoid', calldata is withheld. For check-only without swapping, use token_check.",
   "jobFee": 0.05,
   "jobFeeType": "fixed",
   "requiredFunds": false,

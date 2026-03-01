@@ -1,6 +1,6 @@
 {
   "name": "agent_trust",
-  "description": "Get trust score for any ACP agent wallet. Returns score 0-100, verdict (proceed/caution/avoid), completion rate, payment rate, total jobs, and a risk summary. Sourced from on-chain Virtuals ACP job history — covers all registered ACP agents with on-demand lookup. Use before paying another agent.",
+  "description": "Before paying another agent, call this to verify their reliability. Returns: trustScore 0-100, verdict (proceed/caution/avoid), completionRate, paymentRate, expireRate, totalJobs — sourced from on-chain Virtuals ACP job history, covers all registered agents. Use when: you are about to hire an unknown agent for any job. If verdict is 'avoid', do not proceed. For checking a token address before swapping, use token_check instead.",
   "jobFee": 0.02,
   "jobFeeType": "fixed",
   "requiredFunds": false,

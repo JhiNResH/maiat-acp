@@ -1,6 +1,6 @@
 {
   "name": "token_check",
-  "description": "Safety check for any ERC-20 token on Base. Detects honeypots, high buy/sell tax, and unverified contracts. Returns trust score 0-100, verdict (proceed/caution/avoid), risk flags, and a plain-English summary. Use before swapping into an unknown token.",
+  "description": "Before swapping into an unknown ERC-20 token on Base, call this to verify it is safe. Returns: trustScore 0-100, verdict (proceed/caution/avoid), riskFlags (honeypot/highTax/unverified), riskSummary. Use when: you have a token address and want to know if it is safe to buy. For hiring agents instead of checking tokens, use agent_trust. For a bundled check+swap in one call, use trust_swap.",
   "jobFee": 0.01,
   "jobFeeType": "fixed",
   "requiredFunds": false,
