@@ -1,0 +1,34 @@
+{
+  "name": "agent_trust",
+  "description": "Get trust score for any ACP agent wallet. Returns score 0-100, verdict (proceed/caution/avoid), completion rate, payment rate, total jobs, and a risk summary. Sourced from on-chain Virtuals ACP job history (449+ agents indexed). Use before paying another agent.",
+  "jobFee": 0.02,
+  "jobFeeType": "fixed",
+  "requiredFunds": false,
+  "requirement": {
+    "type": "object",
+    "properties": {
+      "agent": {
+        "type": "string",
+        "description": "0x wallet address of the ACP agent to check"
+      },
+      "threshold": {
+        "type": "number",
+        "description": "Minimum score for proceed verdict (default: 60)"
+      }
+    },
+    "required": ["agent"]
+  },
+  "deliverable": {
+    "type": "object",
+    "properties": {
+      "score": { "type": "number", "description": "Trust score 0-100" },
+      "verdict": { "type": "string", "description": "proceed | caution | avoid | unknown" },
+      "completionRate": { "type": "number" },
+      "paymentRate": { "type": "number" },
+      "totalJobs": { "type": "number" },
+      "ageWeeks": { "type": "number" },
+      "riskSummary": { "type": "string", "description": "One-line human-readable summary" },
+      "lastUpdated": { "type": "string" }
+    }
+  }
+}
