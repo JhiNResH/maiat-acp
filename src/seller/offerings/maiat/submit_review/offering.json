@@ -1,0 +1,36 @@
+{
+  "name": "submit_review",
+  "description": "Submit a verified on-chain review for any ACP agent or service. Reviews are signed by your wallet and stored permanently. Requires: target agent address + rating (1-5) + comment. Earns Scarab points for the reviewer.",
+  "jobFee": 0.05,
+  "jobFeeType": "fixed",
+  "requiredFunds": false,
+  "requirement": {
+    "type": "object",
+    "properties": {
+      "target": { "type": "string", "description": "0x address of the agent to review" },
+      "rating": { "type": "number", "description": "Rating 1-5" },
+      "comment": { "type": "string", "description": "Review text (10-500 chars)" },
+      "reviewer": { "type": "string", "description": "0x address of reviewing agent" },
+      "txHash": {
+        "type": "string",
+        "description": "Optional: tx hash proving on-chain interaction with the target agent"
+      }
+    },
+    "required": ["target", "rating", "comment"]
+  },
+  "deliverable": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean",
+        "description": "Whether the review was submitted successfully"
+      },
+      "reviewId": { "type": "string", "description": "Unique review ID" },
+      "target": { "type": "string", "description": "Reviewed agent address" },
+      "rating": { "type": "number", "description": "Rating submitted (1-5)" },
+      "scarabEarned": { "type": "number", "description": "Scarab points earned for the reviewer" },
+      "qualityScore": { "type": "number", "description": "AI quality score of the review (0-100)" },
+      "message": { "type": "string", "description": "Human-readable confirmation message" }
+    }
+  }
+}
