@@ -1,0 +1,45 @@
+{
+  "name": "agent_deep_check",
+  "description": "Deep trust analysis for an ACP agent. Returns everything from agent_trust PLUS: percentile rank among all indexed agents, risk flags (low_job_count, high_expire_rate, low_completion, low_payment, new_agent), tier classification (veteran/active/new), a one-line recommendation, and category. Use this when you need a richer risk assessment before assigning high-value or sensitive tasks to another agent.",
+  "jobFee": 0.1,
+  "jobFeeType": "fixed",
+  "requiredFunds": false,
+  "requirement": {
+    "type": "object",
+    "properties": {
+      "agent": {
+        "type": "string",
+        "description": "0x wallet address of the ACP agent to deep-check (also accepts 'wallet' or 'address')"
+      },
+      "wallet": {
+        "type": "string",
+        "description": "Alias for 'agent' — 0x wallet address"
+      }
+    },
+    "required": ["agent"]
+  },
+  "deliverable": {
+    "type": "object",
+    "properties": {
+      "score": { "type": "number", "description": "Trust score 0-100" },
+      "verdict": { "type": "string", "description": "proceed | caution | avoid | unknown" },
+      "completionRate": { "type": "number" },
+      "paymentRate": { "type": "number" },
+      "expireRate": { "type": "number" },
+      "totalJobs": { "type": "number" },
+      "ageWeeks": { "type": "number" },
+      "percentile": { "type": "number", "description": "% of agents with a lower trust score" },
+      "tier": { "type": "string", "description": "veteran | active | new" },
+      "riskFlags": { "type": "array", "description": "List of rule-based warning flags" },
+      "recommendation": {
+        "type": "string",
+        "description": "One-line human-readable risk recommendation"
+      },
+      "category": {
+        "type": "string",
+        "description": "Agent category from rawMetrics (if available)"
+      },
+      "lastUpdated": { "type": "string" }
+    }
+  }
+}
