@@ -13,6 +13,43 @@ import { loadOffering, listOfferings } from "./offerings.js";
 import { AcpJobPhase, type AcpJobEventData } from "./types.js";
 import type { ExecuteJobResult } from "./offeringTypes.js";
 import { getMyAgentInfo } from "../../lib/wallet.js";
+
+const MAIAT_REVIEW_URL =
+  process.env.MAIAT_REVIEW_URL || "https://maiat-protocol.vercel.app/api/v1/review";
+
+/**
+ * Post an automated behavioral review after successfully completing a job.
+ * The buyer (clientAddress) gets reviewed by Maiat (our wallet).
+ */
+async function postAutoReview(
+  clientAddress: string,
+  maiatWallet: string,
+  offeringName: string,
+  jobId: number
+) {
+  const rating = 7; // Default positive rating for completed jobs
+  const comment = `Automated review: ${offeringName} job #${jobId} completed successfully.`;
+
+  const res = await fetch(MAIAT_REVIEW_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      address: clientAddress,
+      rating,
+      comment,
+      reviewer: maiatWallet,
+      source: "agent",
+      tags: ["acp", offeringName, "auto"],
+    }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Review API ${res.status}: ${text}`);
+  }
+
+  console.log(`[seller] Auto-review posted for ${clientAddress} (job ${jobId}, ${offeringName})`);
+}
 import {
   checkForExistingProcess,
   writePidToConfig,
@@ -185,6 +222,11 @@ async function handleNewTask(data: AcpJobEventData): Promise<void> {
           payableDetail: result.payableDetail,
         });
         console.log(`[seller] Job ${jobId} — delivered.`);
+
+        // Auto-post behavioral review to Maiat Protocol
+        postAutoReview(data.clientAddress, walletAddress, offeringName, jobId).catch((err) =>
+          console.error(`[seller] Auto-review failed for job ${jobId}:`, err.message)
+        );
       } catch (err) {
         console.error(`[seller] Error delivering job ${jobId}:`, err);
       }
