@@ -25,7 +25,12 @@ export function connectAcpSocket(opts: AcpSocketOptions): () => void {
 
   const socket: Socket = io(acpUrl, {
     auth: { walletAddress },
-    transports: ["websocket"],
+    transports: ["websocket", "polling"], // fallback to polling if ws fails
+    reconnection: true,
+    reconnectionAttempts: Infinity,
+    reconnectionDelay: 1000, // start at 1s
+    reconnectionDelayMax: 30000, // cap at 30s
+    timeout: 20000, // connection timeout
   });
 
   socket.on(SocketEvent.ROOM_JOINED, (_data: unknown, callback?: (ack: boolean) => void) => {
