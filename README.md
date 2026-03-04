@@ -1,102 +1,80 @@
-# Maiat ACP Agent (Scales)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/JhiNResH/maiat-protocol/main/public/maiat-logo.jpg" width="120" alt="Maiat" />
+</p>
 
-**Scales** is the ACP seller agent for [Maiat Protocol](https://maiat-protocol.vercel.app) — the trust layer for the onchain economy.
+<h1 align="center">Maiat Agent (Virtuals ACP)</h1>
 
-Other AI agents hire Scales on the [Virtuals ACP marketplace](https://app.virtuals.io/acp) to check whether a token or agent is safe to transact with.
-
-```
-Buyer Agent  →  hire Scales (ACP)  →  Maiat Protocol API  →  Trust Score
-                   pay USDC                                    + verdict
-```
-
-- **Agent ID:** 3723 on Virtuals ACP
-- **Wallet:** `0xAf1aE6F344c60c7Fe56CB53d1809f2c0B997a2b9` (Base)
-- **Deployed:** Railway (auto-deploy from `main`)
+<p align="center">
+  <strong>The Maiat Agent runtime for the Virtuals Agent Commerce Protocol (ACP).</strong>
+</p>
 
 ---
 
-## Active Offerings
+## Overview
 
-| Offering      | Fee        | What it returns                                                                                       |
-| ------------- | ---------- | ----------------------------------------------------------------------------------------------------- |
-| `token_check` | $0.01 USDC | Honeypot detection, buy/sell tax, verdict (`proceed/caution/avoid`) for any ERC-20 token on Base      |
-| `agent_trust` | $0.02 USDC | ACP behavioral trust score (0–100) based on on-chain job history — completionRate, totalJobs, verdict |
-| `trust_swap`  | $0.05 USDC | Trust-verified Uniswap quote — runs `token_check` first, only returns calldata if safe                |
+This repository contains the Virtuals ACP seller runtime for the **Maiat Agent**. Maiat provides actionable trust intelligence for AI agents, scoring their on-chain behavior and evaluating their performance to provide trust metrics.
 
----
+When Maiat delivers an evaluation job, it does two things simultaneously on the Base network:
 
-## Architecture
+1. **Creates a "Maiat Receipt"** (an Ethereum Attestation Service - EAS attestation).
+2. **Updates the `MaiatOracle`** smart contract on-chain.
 
-```
-maiat-protocol (API)
-├── /api/v1/token/:address   ← token_check calls here
-├── /api/v1/agent/:address   ← agent_trust calls here (on-demand + cached)
-└── /api/v1/swap/quote       ← trust_swap calls here
+## Offerings
 
-maiat-acp (this repo)        ← ACP seller runtime on Railway
-├── token_check/
-├── agent_trust/
-└── trust_swap/
-```
+The agent exposes the following offerings on the Virtuals ACP:
+
+| Offering           | Fee           | Description                                                                              |
+| ------------------ | ------------- | ---------------------------------------------------------------------------------------- |
+| `token_check`      | $0.01         | Honeypot detection, tax analysis, and smart contract risk flags for standard ERC20.      |
+| `agent_trust`      | $0.02         | Simple behavioral trust score derived from a target agent's on-chain job history.        |
+| `agent_deep_check` | $0.10         | Comprehensive percentile rank, risk flags, tier, and recommendation for an agent.        |
+| `trust_swap`       | $0.05 + 0.15% | Trust-gated Uniswap swap execution (calldata is withheld if the target token is unsafe). |
 
 ---
 
-## Local Setup
+## Smart Contracts & Integrations (Base Mainnet)
+
+We developed smart contracts using **Foundry** to secure the output of the agent and make it composable for other DeFi protocols.
+
+| Component                | Address / Identifier                         | Description                                                                                                                                                                   |
+| ------------------------ | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **MaiatOracle**          | `0xdd046b037084e0aa23cfd2182318db28ca4b83a0` | On-chain trust score Oracle. Only the Maiat wallet can update scores via `updateScore()`. Any smart contract or user can dynamically read trust scores via `getTrustScore()`. |
+| **MaiatReceiptResolver** | `0x601063661174bc7cfab4b2622ccc3ed41db0dd09` | An EAS Schema Resolver contract. It enforces that only the Maiat Attester wallet can create attestations against our schema, guaranteeing authenticity.                       |
+| **EAS Schema UID**       | `0xff334be5...8358d2`                        | The registered schema structure for Maiat Receipts on Base Mainnet.                                                                                                           |
+| **EAS Contract**         | `0x4200000000000000000000000000000000000021` | The core Ethereum Attestation Service contract on Base.                                                                                                                       |
+
+The contracts and tests are located in `contracts/` and `test/` respectively.
+
+---
+
+## Getting Started
+
+### Install Dependencies
 
 ```bash
-git clone https://github.com/JhiNResH/maiat-acp
-cd maiat-acp
 npm install
 ```
 
-`.env`:
+### Configure Environment Weights
 
-```env
-LITE_AGENT_API_KEY=acp-ce6fdc2f07bc8408be55
-MAIAT_API_URL=https://maiat-protocol.vercel.app
-```
+Copy the `.env.example` file to `.env` and fill out the necessary variables (like `MAIAT_PRIVATE_KEY` for EAS/Oracle integration, `VIRTUALS_API_KEY`, etc.).
 
-Start seller runtime:
+### Start the Runtime
 
 ```bash
-npm run serve
+npx acp serve start
 ```
 
----
-
-## Railway Deploy
-
-Auto-deploys on push to `main`.
-
-| Env Var              | Value                               |
-| -------------------- | ----------------------------------- |
-| `LITE_AGENT_API_KEY` | `acp-ce6fdc2f07bc8408be55`          |
-| `MAIAT_API_URL`      | `https://maiat-protocol.vercel.app` |
-
----
-
-## Adding Offerings
-
-Each offering is a folder in `src/seller/offerings/maiat/<name>/`:
-
-```
-token_check/
-├── offering.json   ← name, description, price, requirement schema
-└── handlers.ts     ← validateRequirements(), requestPayment(), executeJob()
-```
-
-Register on ACP after adding:
+You can view logs for the runtime by running:
 
 ```bash
-acp sell create <offering-name>
+npx acp serve logs
 ```
 
----
+## Running Smart Contract Tests
 
-## Related Repos
+This project includes 58 Foundry tests (Unit + Fuzz) for the `MaiatOracle` and `MaiatReceiptResolver` contracts.
 
-| Repo                                                           | Role                              |
-| -------------------------------------------------------------- | --------------------------------- |
-| [`maiat-protocol`](https://github.com/JhiNResH/maiat-protocol) | Trust API, scoring engine, Web UI |
-| [`maiat-acp`](https://github.com/JhiNResH/maiat-acp) (this)    | ACP seller runtime                |
-| [`hermes-acp`](https://github.com/JhiNResH/hermes-acp)         | Travel arbitrage ACP agent        |
+```bash
+forge test
+```
