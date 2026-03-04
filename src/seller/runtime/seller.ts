@@ -13,6 +13,13 @@ import { loadOffering, listOfferings } from "./offerings.js";
 import { AcpJobPhase, type AcpJobEventData } from "./types.js";
 import type { ExecuteJobResult } from "./offeringTypes.js";
 import { getMyAgentInfo } from "../../lib/wallet.js";
+import {
+  createAttestation,
+  isEasEnabled,
+  updateOracle,
+  isOracleEnabled,
+  type AttestationData,
+} from "../../lib/eas.js";
 
 const MAIAT_REVIEW_URL =
   process.env.MAIAT_REVIEW_URL || "https://maiat-protocol.vercel.app/api/v1/review";
@@ -87,6 +94,7 @@ function setupCleanupHandlers(): void {
 
 const ACP_URL = process.env.ACP_SOCKET_URL || "https://acpx.virtuals.io";
 let agentDirName: string = "";
+let sellerWalletAddress: string = "";
 
 // -- Job handling --
 
@@ -215,7 +223,13 @@ async function handleNewTask(data: AcpJobEventData): Promise<void> {
         console.log(
           `[seller] Executing offering "${offeringName}" for job ${jobId} (TRANSACTION phase)...`
         );
-        const result: ExecuteJobResult = await handlers.executeJob(requirements);
+        // Inject client wallet into requirements so handlers (e.g. trust_swap) can auto-use it
+        const enrichedRequirements = {
+          ...requirements,
+          _clientAddress: data.clientAddress,
+          swapper: requirements.swapper || data.clientAddress,
+        };
+        const result: ExecuteJobResult = await handlers.executeJob(enrichedRequirements);
 
         await deliverJob(jobId, {
           deliverable: result.deliverable,
@@ -224,9 +238,32 @@ async function handleNewTask(data: AcpJobEventData): Promise<void> {
         console.log(`[seller] Job ${jobId} — delivered.`);
 
         // Auto-post behavioral review to Maiat Protocol
-        postAutoReview(data.clientAddress, walletAddress, offeringName, jobId).catch((err) =>
+        postAutoReview(data.clientAddress, sellerWalletAddress, offeringName, jobId).catch((err) =>
           console.error(`[seller] Auto-review failed for job ${jobId}:`, err.message)
         );
+        // Update on-chain EAS and Oracle sequentially (non-blocking to main thread)
+        (async () => {
+          if (isEasEnabled()) {
+            await tryCreateAttestation(
+              result.deliverable,
+              data.clientAddress,
+              offeringName,
+              jobId
+            ).catch((err) =>
+              console.error(`[seller] EAS attestation failed for job ${jobId}:`, err.message)
+            );
+          }
+          if (isOracleEnabled()) {
+            await tryUpdateOracle(
+              result.deliverable,
+              data.clientAddress,
+              offeringName,
+              jobId
+            ).catch((err) =>
+              console.error(`[seller] Oracle update failed for job ${jobId}:`, err.message)
+            );
+          }
+        })();
       } catch (err) {
         console.error(`[seller] Error delivering job ${jobId}:`, err);
       }
@@ -239,6 +276,81 @@ async function handleNewTask(data: AcpJobEventData): Promise<void> {
   console.log(
     `[seller] Job ${jobId} in phase ${AcpJobPhase[data.phase] ?? data.phase} — no action needed`
   );
+}
+
+// -- EAS helper --
+
+/**
+ * Attempt to create an EAS attestation from the job deliverable.
+ * Parses the deliverable JSON for score/verdict/riskSummary fields.
+ */
+async function tryCreateAttestation(
+  deliverable: string | { type: string; value: unknown },
+  clientAddress: string,
+  offeringName: string,
+  jobId: number
+): Promise<void> {
+  try {
+    const parsed = typeof deliverable === "string" ? JSON.parse(deliverable) : deliverable;
+
+    const score =
+      typeof parsed.score === "number"
+        ? parsed.score
+        : typeof parsed.trustScore === "number"
+          ? parsed.trustScore
+          : null;
+
+    if (score === null) return; // No score to attest
+
+    const attestData: AttestationData = {
+      agent: clientAddress as `0x${string}`,
+      score: Math.min(255, Math.max(0, Math.round(score))),
+      verdict: parsed.verdict || "unknown",
+      offering: offeringName,
+      jobId,
+      riskSummary: parsed.riskSummary || "",
+    };
+
+    await createAttestation(attestData);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[eas] Failed to parse deliverable for attestation: ${msg}`);
+  }
+}
+
+/**
+ * Attempt to update the MaiatOracle from the job deliverable.
+ */
+async function tryUpdateOracle(
+  deliverable: string | { type: string; value: unknown },
+  clientAddress: string,
+  offeringName: string,
+  jobId: number
+): Promise<void> {
+  try {
+    const parsed = typeof deliverable === "string" ? JSON.parse(deliverable) : deliverable;
+
+    const score =
+      typeof parsed.score === "number"
+        ? parsed.score
+        : typeof parsed.trustScore === "number"
+          ? parsed.trustScore
+          : null;
+
+    if (score === null) return;
+
+    await updateOracle({
+      agent: clientAddress as `0x${string}`,
+      score: Math.min(255, Math.max(0, Math.round(score))),
+      verdict: parsed.verdict || "unknown",
+      offering: offeringName,
+      jobId,
+      riskSummary: parsed.riskSummary || "",
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[oracle] Failed to parse deliverable for oracle update: ${msg}`);
+  }
 }
 
 // -- Main --
@@ -254,6 +366,7 @@ async function main() {
   try {
     const agentData = await getMyAgentInfo();
     walletAddress = agentData.walletAddress;
+    sellerWalletAddress = walletAddress;
     agentDirName = sanitizeAgentName(agentData.name);
     console.log(`[seller] Agent: ${agentData.name} (dir: ${agentDirName})`);
   } catch (err) {
