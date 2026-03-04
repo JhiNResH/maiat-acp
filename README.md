@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/JhiNResH/maiat-protocol/main/public/maiat-logo.jpg" width="120" alt="Maiat" />
+  <img src="https://raw.githubusercontent.com/JhiNResH/maiat-protocol/master/public/maiat-logo.jpg" width="120" alt="Maiat" />
 </p>
 
 <h1 align="center">Maiat Agent (Virtuals ACP)</h1>
