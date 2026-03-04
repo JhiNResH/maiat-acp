@@ -12116,3 +12116,249 @@
 [socket] Disconnected: ping timeout
 [socket] Connected to ACP
 [socket] Joined ACP room
+[seller] Agent: Maiat (dir: maiat)
+[seller] Available offerings: agent_deep_check, agent_trust, token_check, trust_swap
+[seller] Seller runtime is running. Waiting for jobs...
+
+[socket] Connected to ACP
+[socket] Joined ACP room
+[seller] Agent: Maiat (dir: maiat)
+[seller] Available offerings: agent_deep_check, agent_trust, token_check, trust_swap
+[seller] Seller runtime is running. Waiting for jobs...
+
+[socket] Connected to ACP
+[socket] Joined ACP room
+[seller] Agent: Maiat (dir: maiat)
+[seller] Available offerings: agent_deep_check, agent_trust, token_check, trust_swap
+[seller] Seller runtime is running. Waiting for jobs...
+
+[socket] Connected to ACP
+[socket] Joined ACP room
+[socket] onNewTask  jobId=1002608005  phase=0
+
+============================================================
+[seller] New task  jobId=1002608005  phase=REQUEST
+         client=0xf4b48521960C7e78fCf89859c42d912cdcd0FC06  price=0.02
+         context=null
+============================================================
+[sellerApi] acceptOrRejectJob  jobId=1002608005  accept=true  reason=Job accepted
+[seller] Job 1002608005 in phase REQUEST — no action needed
+[socket] onNewTask  jobId=1002608016  phase=0
+
+============================================================
+[seller] New task  jobId=1002608016  phase=REQUEST
+         client=0xf4b48521960C7e78fCf89859c42d912cdcd0FC06  price=0.1
+         context=null
+============================================================
+[sellerApi] acceptOrRejectJob  jobId=1002608016  accept=true  reason=Job accepted
+[socket] onNewTask  jobId=1002608005  phase=2
+
+============================================================
+[seller] New task  jobId=1002608005  phase=TRANSACTION
+         client=0xf4b48521960C7e78fCf89859c42d912cdcd0FC06  price=0.02
+         context=null
+============================================================
+[seller] Executing offering "agent_trust" for job 1002608005 (TRANSACTION phase)...
+[seller] Job 1002608016 in phase REQUEST — no action needed
+[socket] onNewTask  jobId=1002608019  phase=0
+
+============================================================
+[seller] New task  jobId=1002608019  phase=REQUEST
+         client=0xf4b48521960C7e78fCf89859c42d912cdcd0FC06  price=0.01
+         context=null
+============================================================
+[sellerApi] acceptOrRejectJob  jobId=1002608019  accept=true  reason=Job accepted
+[sellerApi] deliverJob  jobId=1002608005  deliverable={"score":72,"verdict":"caution","completionRate":0.7857,"paymentRate":0.825,"totalJobs":11,"ageWeeks":null,"riskSummary":"Score 72/100 — some concerns, review completion/payment rates","lastUpdated":"2026-03-03T03:36:58.706Z"}
+[seller] Job 1002608005 — delivered.
+[seller] Error delivering job 1002608005: ReferenceError: walletAddress is not defined
+    at handleNewTask (/Users/jhinresh/maiat-agent/src/seller/runtime/seller.ts:227:44)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[socket] onNewTask  jobId=1002608026  phase=0
+
+============================================================
+[seller] New task  jobId=1002608026  phase=REQUEST
+         client=0xf4b48521960C7e78fCf89859c42d912cdcd0FC06  price=0.05
+         context=null
+============================================================
+[sellerApi] acceptOrRejectJob  jobId=1002608026  accept=true  reason=Job accepted
+[seller] Job 1002608019 in phase REQUEST — no action needed
+[socket] onNewTask  jobId=1002608016  phase=2
+
+============================================================
+[seller] New task  jobId=1002608016  phase=TRANSACTION
+         client=0xf4b48521960C7e78fCf89859c42d912cdcd0FC06  price=0.1
+         context=null
+============================================================
+[seller] Executing offering "agent_deep_check" for job 1002608016 (TRANSACTION phase)...
+[sellerApi] deliverJob  jobId=1002608016  deliverable={"score":72,"verdict":"caution","completionRate":0.7857,"paymentRate":0.825,"expireRate":0.1643,"totalJobs":11,"ageWeeks":null,"percentile":97,"tier":"active","riskFlags":[],"recommendation":"Active agent — suitable for routine tasks, monitor closely","category":null,"lastUpdated":"2026-03-03T03:36:58.706Z"}
+[seller] Job 1002608026 in phase REQUEST — no action needed
+[seller] Job 1002608016 — delivered.
+[seller] Error delivering job 1002608016: ReferenceError: walletAddress is not defined
+    at handleNewTask (/Users/jhinresh/maiat-agent/src/seller/runtime/seller.ts:227:44)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[socket] onNewTask  jobId=1002608019  phase=2
+
+============================================================
+[seller] New task  jobId=1002608019  phase=TRANSACTION
+         client=0xf4b48521960C7e78fCf89859c42d912cdcd0FC06  price=0.01
+         context=null
+============================================================
+[seller] Executing offering "token_check" for job 1002608019 (TRANSACTION phase)...
+[sellerApi] deliverJob  jobId=1002608019  deliverable={"address":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913","tokenType":"known_safe","trustScore":100,"verdict":"proceed","riskFlags":[],"riskSummary":"USD Coin (USDC) is a verified safe token.","honeypot":null}
+[seller] Job 1002608019 — delivered.
+[seller] Error delivering job 1002608019: ReferenceError: walletAddress is not defined
+    at handleNewTask (/Users/jhinresh/maiat-agent/src/seller/runtime/seller.ts:227:44)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[socket] onNewTask  jobId=1002608026  phase=2
+
+============================================================
+[seller] New task  jobId=1002608026  phase=TRANSACTION
+         client=0xf4b48521960C7e78fCf89859c42d912cdcd0FC06  price=0.05
+         context=null
+============================================================
+[seller] Executing offering "trust_swap" for job 1002608026 (TRANSACTION phase)...
+[sellerApi] deliverJob  jobId=1002608026  deliverable={"trustScore":100,"verdict":"proceed","riskFlags":[],"riskSummary":"Wrapped Ether (WETH) is a verified safe token.","quote":{"requestId":"Zq-aThtBiYcEM5Q=","routing":"CLASSIC","permitData":{"domain":{"name":"Permit2","chainId":8453,"verifyingContract":"0x000000000022D473030F116dDEE9F6B43aC78BA3"},"types":{"PermitSingle":[{"name":"details","type":"PermitDetails"},{"name":"spender","type":"address"},{"name":"sigDeadline","type":"uint256"}],"PermitDetails":[{"name":"token","type":"address"},{"name":"amount","type":"uint160"},{"name":"expiration","type":"uint48"},{"name":"nonce","type":"uint48"}]},"values":{"details":{"token":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913","amount":"1461501637330902918203684832716283019655932542975","expiration":"1775174780","nonce":"0"},"spender":"0x6ff5693b99212da76ad316178a184ab56d299b43","sigDeadline":"1772584580"}},"permitTransaction":null,"quote":{"chainId":8453,"swapper":"0x0000000000000000000000000000000000000000","tradeType":"EXACT_INPUT","route":[[{"type":"v3-pool","address":"0x6c561B446416E1A00E8E93E221854d6eA4171372","tokenIn":{"address":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913","chainId":8453,"symbol":"USDC","decimals":"6"},"tokenOut":{"address":"0x4200000000000000000000000000000000000006","chainId":8453,"symbol":"WETH","decimals":"18"},"sqrtRatioX96":"3530570989250708174068939","liquidity":"14973384970333554609","tickCurrent":"-200383","fee":"3000","amountIn":"50000000000000000000000","amountOut":"18594755321383369353863"}],[{"type":"v3-pool","address":"0xfBB6Eed8e7aa03B138556eeDaF5D271A5E1e43ef","tokenIn":{"address":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913","chainId":8453,"symbol":"USDC","decimals":"6"},"tokenOut":{"address":"0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf","chainId":8453,"symbol":"cbBTC","decimals":"8"},"sqrtRatioX96":"3032196741934072850749141320","liquidity":"2162203904524","tickCurrent":"-65265","fee":"500","amountIn":"50000000000000000000000"},{"type":"v3-pool","address":"0x8c7080564B5A792A33Ef2FD473fbA6364d5495e5","tokenIn":{"address":"0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf","chainId":8453,"symbol":"cbBTC","decimals":"8"},"tokenOut":{"address":"0x4200000000000000000000000000000000000006","chainId":8453,"symbol":"WETH","decimals":"18"},"sqrtRatioX96":"134977792209030680071049","liquidity":"124126799361244297","tickCurrent":"-265668","fee":"3000","amountOut":"1908798063548856326080"}],[{"type":"v3-pool","address":"0xeC558e484cC9f2210714E345298fdc53B253c27D","tokenIn":{"address":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913","chainId":8453,"symbol":"USDC","decimals":"6"},"tokenOut":{"address":"0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf","chainId":8453,"symbol":"cbBTC","decimals":"8"},"sqrtRatioX96":"3029361665037167090641914665","liquidity":"762721881996","tickCurrent":"-65283","fee":"3000","amountIn":"50000000000000000000000"},{"type":"v3-pool","address":"0x7AeA2E8A3843516afa07293a10Ac8E49906dabD1","tokenIn":{"address":"0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf","chainId":8453,"symbol":"cbBTC","decimals":"8"},"tokenOut":{"address":"0x4200000000000000000000000000000000000006","chainId":8453,"symbol":"WETH","decimals":"18"},"sqrtRatioX96":"134988697501114741905610","liquidity":"70546007579267719","tickCurrent":"-265667","fee":"500","amountOut":"691432292379993204007"}],[{"type":"v4-pool","address":"0xe070797535b13431808f8fc81fdbe7b41362960ed0b55bc2b6117c49c51b7eb9","tokenIn":{"address":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913","chainId":8453,"symbol":"USDC","decimals":"6"},"tokenOut":{"address":"0x0000000000000000000000000000000000000000","chainId":8453,"symbol":"ETH","decimals":"18"},"sqrtRatioX96":"3530569936741712181650996","liquidity":"119584476233777667","tickCurrent":"-200383","fee":"3000","tickSpacing":"60","hooks":"0x0000000000000000000000000000000000000000","amountIn":"50000000000000000000000"},{"type":"v4-pool","address":"0xbb2aefc6c55a0464b944c0478869527ba1a537f05f90a1bb82e1196c6e9403e2","tokenIn":{"address":"0x0000000000000000000000000000000000000000","chainId":8453,"symbol":"ETH","decimals":"18"},"tokenOut":{"address":"0x4200000000000000000000000000000000000006","chainId":8453,"symbol":"WETH","decimals":"18"},"sqrtRatioX96":"79228162514264337593543950336","liquidity":"0","tickCurrent":"0","fee":"0","tickSpacing":"1","hooks":"0xb08211d57032dd10b1974d4b876851a7f7596888","amountOut":"327929033534125936763"}],[{"type":"v3-pool","address":"0x0b1C2DCbBfA744ebD3fC17fF1A96A1E1Eb4B2d69","tokenIn":{"address":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913","chainId":8453,"symbol":"USDC","decimals":"6"},"tokenOut":{"address":"0x4200000000000000000000000000000000000006","chainId":8453,"symbol":"WETH","decimals":"18"},"sqrtRatioX96":"3526684179590249366909298","liquidity":"18907184761328299","tickCurrent":"-200405","fee":"10000","amountIn":"50000000000000000000000","amountOut":"63494749527859320660"}],[{"type":"v2-pool","address":"0x88A43bbDF9D098eEC7bCEda4e2494615dfD9bB9C","tokenIn":{"address":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913","chainId":8453,"symbol":"USDC","decimals":"6"},"tokenOut":{"address":"0x4200000000000000000000000000000000000006","chainId":8453,"symbol":"WETH","decimals":"18"},"reserve0":{"token":{"address":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913","chainId":8453,"symbol":"USDC","decimals":"6"},"quotient":"1812603973970"},"reserve1":{"token":{"address":"0x4200000000000000000000000000000000000006","chainId":8453,"symbol":"WETH","decimals":"18"},"quotient":"912839954570927150180"},"amountIn":"750000000000000000000000","amountOut":"912839954568714355356"}]],"input":{"amount":"1000000000000000000000000","token":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"},"output":{"amount":"22499249414942918496729","token":"0x4200000000000000000000000000000000000006","recipient":"0x0000000000000000000000000000000000000000"},"slippage":0.5,"priceImpact":100,"gasFee":"275490274852567","gasFeeUSD":"0.5469152563739476","gasFeeQuote":"275542990287000","gasUseEstimate":"39441000","quoteId":"d1f5fda7-5e78-4120-96e7-c671ffbf13c6","gasPrice":"6986207","txFailureReasons":[],"gasEstimates":[],"aggregatedOutputs":[{"amount":"22499249414942918496729","token":"0x4200000000000000000000000000000000000006","recipient":"0x0000000000000000000000000000000000000000","bps":10000,"minAmount":"22386753167868203904245"}]}},"calldata":"","to":"","value":"0"}
+[seller] Job 1002608026 — delivered.
+[seller] Error delivering job 1002608026: ReferenceError: walletAddress is not defined
+    at handleNewTask (/Users/jhinresh/maiat-agent/src/seller/runtime/seller.ts:227:44)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[socket] Disconnected: ping timeout
+[socket] Connected to ACP
+[socket] Joined ACP room
+[seller] Agent: Maiat (dir: maiat)
+[seller] Available offerings: agent_deep_check, agent_trust, token_check, trust_swap
+[seller] Seller runtime is running. Waiting for jobs...
+
+[socket] Connected to ACP
+[socket] Joined ACP room
+[socket] onNewTask  jobId=1002608559  phase=0
+
+============================================================
+[seller] New task  jobId=1002608559  phase=REQUEST
+         client=0xf4b48521960C7e78fCf89859c42d912cdcd0FC06  price=0.05
+         context=null
+============================================================
+[sellerApi] acceptOrRejectJob  jobId=1002608559  accept=true  reason=Job accepted
+[seller] Job 1002608559 in phase REQUEST — no action needed
+[socket] onNewTask  jobId=1002608559  phase=2
+
+============================================================
+[seller] New task  jobId=1002608559  phase=TRANSACTION
+         client=0xf4b48521960C7e78fCf89859c42d912cdcd0FC06  price=0.05
+         context=null
+============================================================
+[seller] Executing offering "trust_swap" for job 1002608559 (TRANSACTION phase)...
+[sellerApi] deliverJob  jobId=1002608559  deliverable={"trustScore":100,"verdict":"proceed","riskFlags":[],"riskSummary":"Wrapped Ether (WETH) is a verified safe token.","quote":{"requestId":"ZrDWIgwyCYcEM5g=","routing":"CLASSIC","permitData":{"domain":{"name":"Permit2","chainId":8453,"verifyingContract":"0x000000000022D473030F116dDEE9F6B43aC78BA3"},"types":{"PermitSingle":[{"name":"details","type":"PermitDetails"},{"name":"spender","type":"address"},{"name":"sigDeadline","type":"uint256"}],"PermitDetails":[{"name":"token","type":"address"},{"name":"amount","type":"uint160"},{"name":"expiration","type":"uint48"},{"name":"nonce","type":"uint48"}]},"values":{"details":{"token":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913","amount":"1461501637330902918203684832716283019655932542975","expiration":"1775176801","nonce":"0"},"spender":"0x6ff5693b99212da76ad316178a184ab56d299b43","sigDeadline":"1772586601"}},"permitTransaction":null,"quote":{"chainId":8453,"swapper":"0xf4b48521960C7e78fCf89859c42d912cdcd0FC06","tradeType":"EXACT_INPUT","route":[[{"type":"v3-pool","address":"0x6c561B446416E1A00E8E93E221854d6eA4171372","tokenIn":{"address":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913","chainId":8453,"symbol":"USDC","decimals":"6"},"tokenOut":{"address":"0x4200000000000000000000000000000000000006","chainId":8453,"symbol":"WETH","decimals":"18"},"sqrtRatioX96":"3515409412710391293608027","liquidity":"15275197680625050737","tickCurrent":"-200469","fee":"3000","amountIn":"50000000000000000000000","amountOut":"20078557938931434394203"}],[{"type":"v3-pool","address":"0xfBB6Eed8e7aa03B138556eeDaF5D271A5E1e43ef","tokenIn":{"address":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913","chainId":8453,"symbol":"USDC","decimals":"6"},"tokenOut":{"address":"0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf","chainId":8453,"symbol":"cbBTC","decimals":"8"},"sqrtRatioX96":"3039659461636173355694244981","liquidity":"2165727085182","tickCurrent":"-65215","fee":"500","amountIn":"50000000000000000000000"},{"type":"v3-pool","address":"0x8c7080564B5A792A33Ef2FD473fbA6364d5495e5","tokenIn":{"address":"0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf","chainId":8453,"symbol":"cbBTC","decimals":"8"},"tokenOut":{"address":"0x4200000000000000000000000000000000000006","chainId":8453,"symbol":"WETH","decimals":"18"},"sqrtRatioX96":"134928069765307721728769","liquidity":"126216162161453906","tickCurrent":"-265676","fee":"3000","amountOut":"1979287022447520114071"}],[{"type":"v3-pool","address":"0xeC558e484cC9f2210714E345298fdc53B253c27D","tokenIn":{"address":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913","chainId":8453,"symbol":"USDC","decimals":"6"},"tokenOut":{"address":"0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf","chainId":8453,"symbol":"cbBTC","decimals":"8"},"sqrtRatioX96":"3036404344175626778909163117","liquidity":"828975036841","tickCurrent":"-65237","fee":"3000","amountIn":"50000000000000000000000"},{"type":"v3-pool","address":"0x7AeA2E8A3843516afa07293a10Ac8E49906dabD1","tokenIn":{"address":"0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf","chainId":8453,"symbol":"cbBTC","decimals":"8"},"tokenOut":{"address":"0x4200000000000000000000000000000000000006","chainId":8453,"symbol":"WETH","decimals":"18"},"sqrtRatioX96":"134769252751220061268304","liquidity":"46868534842547181","tickCurrent":"-265699","fee":"500","amountOut":"719061458370393277404"}],[{"type":"v4-pool","address":"0xe070797535b13431808f8fc81fdbe7b41362960ed0b55bc2b6117c49c51b7eb9","tokenIn":{"address":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913","chainId":8453,"symbol":"USDC","decimals":"6"},"tokenOut":{"address":"0x0000000000000000000000000000000000000000","chainId":8453,"symbol":"ETH","decimals":"18"},"sqrtRatioX96":"3515260144619636272295021","liquidity":"138165615381533405","tickCurrent":"-200470","fee":"3000","tickSpacing":"60","hooks":"0x0000000000000000000000000000000000000000","amountIn":"50000000000000000000000"},{"type":"v4-pool","address":"0xbb2aefc6c55a0464b944c0478869527ba1a537f05f90a1bb82e1196c6e9403e2","tokenIn":{"address":"0x0000000000000000000000000000000000000000","chainId":8453,"symbol":"ETH","decimals":"18"},"tokenOut":{"address":"0x4200000000000000000000000000000000000006","chainId":8453,"symbol":"WETH","decimals":"18"},"sqrtRatioX96":"79228162514264337593543950336","liquidity":"0","tickCurrent":"0","fee":"0","tickSpacing":"1","hooks":"0xb08211d57032dd10b1974d4b876851a7f7596888","amountOut":"341082626240339108156"}],[{"type":"v3-pool","address":"0x0b1C2DCbBfA744ebD3fC17fF1A96A1E1Eb4B2d69","tokenIn":{"address":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913","chainId":8453,"symbol":"USDC","decimals":"6"},"tokenOut":{"address":"0x4200000000000000000000000000000000000006","chainId":8453,"symbol":"WETH","decimals":"18"},"sqrtRatioX96":"3526684179590249366909298","liquidity":"18907184761328299","tickCurrent":"-200405","fee":"10000","amountIn":"50000000000000000000000","amountOut":"63494749527859320660"}],[{"type":"v2-pool","address":"0x88A43bbDF9D098eEC7bCEda4e2494615dfD9bB9C","tokenIn":{"address":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913","chainId":8453,"symbol":"USDC","decimals":"6"},"tokenOut":{"address":"0x4200000000000000000000000000000000000006","chainId":8453,"symbol":"WETH","decimals":"18"},"reserve0":{"token":{"address":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913","chainId":8453,"symbol":"USDC","decimals":"6"},"quotient":"1804803036028"},"reserve1":{"token":{"address":"0x4200000000000000000000000000000000000006","chainId":8453,"symbol":"WETH","decimals":"18"},"quotient":"916800640845064892422"},"amountIn":"750000000000000000000000","amountOut":"916800640842852061154"}]],"input":{"amount":"1000000000000000000000000","token":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"},"output":{"amount":"24098284436360398275648","token":"0x4200000000000000000000000000000000000006","recipient":"0xf4b48521960C7e78fCf89859c42d912cdcd0FC06"},"slippage":0.5,"priceImpact":100,"gasFee":"284171912568960","gasFeeUSD":"0.5598213608552068","gasFeeQuote":"284551959900000","gasUseEstimate":"39503000","quoteId":"72ec450b-62d4-4989-8302-8e25b6054069","gasPrice":"7203300","txFailureReasons":[],"gasEstimates":[],"aggregatedOutputs":[{"amount":"24098284436360398275648","token":"0x4200000000000000000000000000000000000006","recipient":"0xf4b48521960C7e78fCf89859c42d912cdcd0FC06","bps":10000,"minAmount":"23977793014178596284269"}]}},"calldata":"","to":"","value":"0"}
+[seller] Job 1002608559 — delivered.
+[seller] Auto-review failed for job 1002608559: Review API 402: {"error":"Insufficient Scarab points","detail":"Insufficient Scarab. Need 2, have 0","hint":"Claim daily Scarab at /api/v1/scarab/claim or purchase at /api/v1/scarab/purchase"}
+[seller] Agent: Maiat (dir: maiat)
+[seller] Available offerings: agent_deep_check, agent_trust, token_check, trust_swap
+[seller] Seller runtime is running. Waiting for jobs...
+
+[socket] Connected to ACP
+[socket] Joined ACP room
+[seller] Agent: Maiat (dir: maiat)
+[seller] Available offerings: agent_deep_check, agent_trust, token_check, trust_swap
+[seller] Seller runtime is running. Waiting for jobs...
+
+[socket] Connected to ACP
+[socket] Joined ACP room
+[socket] onNewTask  jobId=1002609142  phase=0
+
+============================================================
+[seller] New task  jobId=1002609142  phase=REQUEST
+         client=0xf4b48521960C7e78fCf89859c42d912cdcd0FC06  price=0.02
+         context=null
+============================================================
+[sellerApi] acceptOrRejectJob  jobId=1002609142  accept=true  reason=Job accepted
+[seller] Job 1002609142 in phase REQUEST — no action needed
+[socket] onNewTask  jobId=1002609142  phase=2
+
+============================================================
+[seller] New task  jobId=1002609142  phase=TRANSACTION
+         client=0xf4b48521960C7e78fCf89859c42d912cdcd0FC06  price=0.02
+         context=null
+============================================================
+[seller] Executing offering "agent_trust" for job 1002609142 (TRANSACTION phase)...
+[sellerApi] deliverJob  jobId=1002609142  deliverable={"score":72,"verdict":"caution","completionRate":0.7857,"paymentRate":0.825,"totalJobs":11,"ageWeeks":null,"riskSummary":"Score 72/100 — some concerns, review completion/payment rates","lastUpdated":"2026-03-03T03:36:58.706Z"}
+[seller] Job 1002609142 — delivered.
+[eas] Attestation created — UID: 0x803245cce1ffc4e9be95b7683d5216e3d09e5f55decf0755e0069e780e69aa72 tx: 0xaddb84bf652fbd7418b520dbf279fa37aa58d5353f975254f58ef0a23053b7ba
+[seller] Auto-review failed for job 1002609142: Review API 402: {"error":"Insufficient Scarab points","detail":"Insufficient Scarab. Need 2, have 0","hint":"Claim daily Scarab at /api/v1/scarab/claim or purchase at /api/v1/scarab/purchase"}
+[socket] Disconnected: ping timeout
+[socket] Connected to ACP
+[socket] Joined ACP room
+[seller] Agent: Maiat (dir: maiat)
+[seller] Available offerings: agent_deep_check, agent_trust, token_check, trust_swap
+[seller] Seller runtime is running. Waiting for jobs...
+
+[socket] Connected to ACP
+[socket] Joined ACP room
+[socket] onNewTask  jobId=1002610193  phase=0
+
+============================================================
+[seller] New task  jobId=1002610193  phase=REQUEST
+         client=0xf4b48521960C7e78fCf89859c42d912cdcd0FC06  price=0.02
+         context=null
+============================================================
+[sellerApi] acceptOrRejectJob  jobId=1002610193  accept=true  reason=Job accepted
+[seller] Job 1002610193 in phase REQUEST — no action needed
+[socket] onNewTask  jobId=1002610193  phase=2
+
+============================================================
+[seller] New task  jobId=1002610193  phase=TRANSACTION
+         client=0xf4b48521960C7e78fCf89859c42d912cdcd0FC06  price=0.02
+         context=null
+============================================================
+[seller] Executing offering "agent_trust" for job 1002610193 (TRANSACTION phase)...
+[sellerApi] deliverJob  jobId=1002610193  deliverable={"score":72,"verdict":"caution","completionRate":0.7857,"paymentRate":0.825,"totalJobs":11,"ageWeeks":null,"riskSummary":"Score 72/100 — some concerns, review completion/payment rates","lastUpdated":"2026-03-03T03:36:58.706Z"}
+[seller] Job 1002610193 — delivered.
+[oracle] Score updated — agent: 0xf4b48521960C7e78fCf89859c42d912cdcd0FC06 score: 72 tx: 0xa0fea13d1223c8f8f88608b73c2cff957c58c58eba1c815e49ff32025f2481ae
+[eas] Attestation failed: Missing or invalid parameters.
+Double check you have provided the correct parameters.
+
+URL: https://mainnet.base.org
+Request body: {"method":"eth_sendRawTransaction","params":["0x02f903518221050e830f4240836f018c8308157a94420000000000000000000000000000000000002180b902e4f17325e70000000000000000000000000000000000000000000000000000000000000020ff334be59dc68d965e7e3f9944caf49af9523c3125d1499b72a19dac198358d20000000000000000000000000000000000000000000000000000000000000040000000000000000000000000f4b48521960c7e78fcf89859c42d912cdcd0fc0600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001a0000000000000000000000000f4b48521960c7e78fcf89859c42d912cdcd0fc06000000000000000000000000000000000000000000000000000000000000004800000000000000000000000000000000000000000000000000000000000000c00000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000003bc29e110000000000000000000000000000000000000000000000000000000000000140000000000000000000000000000000000000000000000000000000000000000763617574696f6e00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000b6167656e745f7472757374000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003f53636f72652037322f31303020e2809420736f6d6520636f6e6365726e732c2072657669657720636f6d706c6574696f6e2f7061796d656e7420726174657300c001a04788d56fbd85e765350a497e21222c506ca2e1b71f6e96753da4085ca472e927a00d9047e665c33faa9050071f171ff77e04e790e303ef36c75befbf3c3d193ca2"]}
+ 
+Request Arguments:
+  from:  0x5F725b18E3a783A1d7157543Af1a9814753fA788
+  to:    0x4200000000000000000000000000000000000021
+  data:  0xf17325e70000000000000000000000000000000000000000000000000000000000000020ff334be59dc68d965e7e3f9944caf49af9523c3125d1499b72a19dac198358d20000000000000000000000000000000000000000000000000000000000000040000000000000000000000000f4b48521960c7e78fcf89859c42d912cdcd0fc0600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001a0000000000000000000000000f4b48521960c7e78fcf89859c42d912cdcd0fc06000000000000000000000000000000000000000000000000000000000000004800000000000000000000000000000000000000000000000000000000000000c00000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000003bc29e110000000000000000000000000000000000000000000000000000000000000140000000000000000000000000000000000000000000000000000000000000000763617574696f6e00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000b6167656e745f7472757374000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003f53636f72652037322f31303020e2809420736f6d6520636f6e6365726e732c2072657669657720636f6d706c6574696f6e2f7061796d656e7420726174657300
+ 
+Contract Call:
+  address:   0x4200000000000000000000000000000000000021
+  function:  attest((bytes32 schema, (address recipient, uint64 expirationTime, bool revocable, bytes32 refUID, bytes data, uint256 value)))
+  args:            ({"schema":"0xff334be59dc68d965e7e3f9944caf49af9523c3125d1499b72a19dac198358d2","data":{"recipient":"0xf4b48521960C7e78fCf89859c42d912cdcd0FC06","expirationTime":"0","revocable":false,"refUID":"0x0000000000000000000000000000000000000000000000000000000000000000","data":"0x000000000000000000000000f4b48521960c7e78fcf89859c42d912cdcd0fc06000000000000000000000000000000000000000000000000000000000000004800000000000000000000000000000000000000000000000000000000000000c00000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000003bc29e110000000000000000000000000000000000000000000000000000000000000140000000000000000000000000000000000000000000000000000000000000000763617574696f6e00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000b6167656e745f7472757374000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003f53636f72652037322f31303020e2809420736f6d6520636f6e6365726e732c2072657669657720636f6d706c6574696f6e2f7061796d656e7420726174657300","value":"0"}})
+  sender:    0x5F725b18E3a783A1d7157543Af1a9814753fA788
+
+Docs: https://viem.sh/docs/contract/writeContract
+Details: replacement transaction underpriced
+Version: viem@2.46.3
+[seller] Auto-review failed for job 1002610193: Review API 402: {"error":"Insufficient Scarab points","detail":"Insufficient Scarab. Need 2, have 0","hint":"Claim daily Scarab at /api/v1/scarab/claim or purchase at /api/v1/scarab/purchase"}
+[seller] Agent: Maiat (dir: maiat)
+[seller] Available offerings: agent_deep_check, agent_trust, token_check, trust_swap
+[seller] Seller runtime is running. Waiting for jobs...
+
+[socket] Connected to ACP
+[socket] Joined ACP room
+[socket] onNewTask  jobId=1002610212  phase=0
+
+============================================================
+[seller] New task  jobId=1002610212  phase=REQUEST
+         client=0xf4b48521960C7e78fCf89859c42d912cdcd0FC06  price=0.02
+         context=null
+============================================================
+[sellerApi] acceptOrRejectJob  jobId=1002610212  accept=true  reason=Job accepted
+[seller] Job 1002610212 in phase REQUEST — no action needed
+[socket] onNewTask  jobId=1002610212  phase=2
+
+============================================================
+[seller] New task  jobId=1002610212  phase=TRANSACTION
+         client=0xf4b48521960C7e78fCf89859c42d912cdcd0FC06  price=0.02
+         context=null
+============================================================
+[seller] Executing offering "agent_trust" for job 1002610212 (TRANSACTION phase)...
+[sellerApi] deliverJob  jobId=1002610212  deliverable={"score":72,"verdict":"caution","completionRate":0.7857,"paymentRate":0.825,"totalJobs":11,"ageWeeks":null,"riskSummary":"Score 72/100 — some concerns, review completion/payment rates","lastUpdated":"2026-03-03T03:36:58.706Z"}
+[seller] Job 1002610212 — delivered.
+[seller] Auto-review failed for job 1002610212: Review API 402: {"error":"Insufficient Scarab points","detail":"Insufficient Scarab. Need 2, have 0","hint":"Claim daily Scarab at /api/v1/scarab/claim or purchase at /api/v1/scarab/purchase"}
+[eas] Attestation created — UID: 0x594ee38dc96304ceedc1338dec3dc6483c22a69b6c49d9114ade4baecdb1f2f5 tx: 0x656b75701b38c50fec9a73f77ea9d54419ba9e7ceff6a262433f47d30461dd50
+[oracle] Score updated — agent: 0xf4b48521960C7e78fCf89859c42d912cdcd0FC06 score: 72 tx: 0x5a667c4e58291a1a0502aaa83aa687b568e3c21ca981d7ea3151fca848d56922

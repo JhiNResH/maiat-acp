@@ -17,6 +17,10 @@
     "seller:run": "tsx bin/acp.ts serve start",
     "seller:stop": "tsx bin/acp.ts serve stop",
     "seller:check": "tsx bin/acp.ts serve status",
+    "eas:register-schema": "tsx scripts/eas-register-schema.ts",
+    "eas:re-register": "tsx scripts/eas-reregister-schema.ts",
+    "contracts:compile": "npx solcjs --abi --bin --optimize contracts/MaiatReceiptResolver.sol contracts/MaiatOracle.sol -o contracts/build",
+    "deploy:contracts": "tsx scripts/deploy-contracts.ts",
     "erc8004:register": "tsx scripts/erc8004-register.ts",
     "erc8004:set-wallet": "tsx scripts/erc8004-set-wallet.ts",
     "erc8004:update-uri": "tsx scripts/erc8004-update-uri.ts",
@@ -36,6 +40,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^15.4.3",
     "prettier": "^3.4.2",
+    "solc": "^0.8.28",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
   },
