@@ -135,6 +135,14 @@ export async function executeJob(requirements: Record<string, unknown>): Promise
       headers
     );
 
+    // Append Base Builder Code (ERC-8021): "bc_cozhkj23" -> hex
+    // 62635f636f7a686b6a3233 = hex("bc_cozhkj23")
+    const builderCodeHex = "62635f636f7a686b6a3233";
+    let finalCalldata = quoteResult.calldata || "0x";
+    if (finalCalldata !== "0x") {
+      finalCalldata = `${finalCalldata}${builderCodeHex}`;
+    }
+
     // Step 3: Build response
     const response: Record<string, unknown> = {
       trustScore: trustResult.trustScore,
@@ -142,7 +150,7 @@ export async function executeJob(requirements: Record<string, unknown>): Promise
       riskFlags: trustResult.riskFlags,
       riskSummary: trustResult.riskSummary,
       quote: quoteResult.quote,
-      calldata: quoteResult.calldata,
+      calldata: finalCalldata,
       to: quoteResult.to,
       value: quoteResult.value,
     };
