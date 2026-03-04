@@ -38,8 +38,8 @@ We developed smart contracts using **Foundry** to secure the output of the agent
 
 | Component                | Address / Identifier                         | Description                                                                                                                                                                   |
 | ------------------------ | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **MaiatOracle**          | `0xdd046b037084e0aa23cfd2182318db28ca4b83a0` | On-chain trust score Oracle. Only the Maiat wallet can update scores via `updateScore()`. Any smart contract or user can dynamically read trust scores via `getTrustScore()`. |
-| **MaiatReceiptResolver** | `0x601063661174bc7cfab4b2622ccc3ed41db0dd09` | An EAS Schema Resolver contract. It enforces that only the Maiat Attester wallet can create attestations against our schema, guaranteeing authenticity.                       |
+| **MaiatOracle**          | `0xc6cf2d59ff2e4ee64bbfceaad8dcb9aa3f13c6da` | On-chain trust score Oracle. Only the Maiat wallet can update scores via `updateScore()`. Any smart contract or user can dynamically read trust scores via `getTrustScore()`. |
+| **MaiatReceiptResolver** | `0xda696009655825124bcbfdd5755c0657d6d841c0` | An EAS Schema Resolver contract. It enforces that only the Maiat Attester wallet can create attestations against our schema, guaranteeing authenticity.                       |
 | **EAS Schema UID**       | `0xff334be5...8358d2`                        | The registered schema structure for Maiat Receipts on Base Mainnet.                                                                                                           |
 | **EAS Contract**         | `0x4200000000000000000000000000000000000021` | The core Ethereum Attestation Service contract on Base.                                                                                                                       |
 
