@@ -17,6 +17,7 @@ interface TrustResult {
 }
 
 interface QuoteResult {
+  jobId: string | null;
   quote: Record<string, unknown>;
   calldata: string;
   to: string;
@@ -145,6 +146,7 @@ export async function executeJob(requirements: Record<string, unknown>): Promise
 
     // Step 3: Build response
     const response: Record<string, unknown> = {
+      jobId: quoteResult.jobId ?? null,
       trustScore: trustResult.trustScore,
       verdict: trustResult.verdict,
       riskFlags: trustResult.riskFlags,
@@ -153,6 +155,9 @@ export async function executeJob(requirements: Record<string, unknown>): Promise
       calldata: finalCalldata,
       to: quoteResult.to,
       value: quoteResult.value,
+      _outcomeEndpoint: `${MAIAT_API}/api/v1/outcome`,
+      _outcomeInstructions:
+        "After executing this swap, POST { jobId, agentAddress, outcome: 'success'|'failure', actualAmountOut } to _outcomeEndpoint with X-Maiat-Key header.",
     };
 
     // Add warning for non-safe verdicts
@@ -235,6 +240,7 @@ async function getSwapQuote(
   const data = (await res.json()) as Record<string, unknown>;
 
   return {
+    jobId: (data.jobId as string) || null,
     quote: (data.quote as Record<string, unknown>) || {},
     calldata: (data.calldata as string) || "",
     to: (data.to as string) || "",
