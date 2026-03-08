@@ -1,8 +1,8 @@
 /**
- * Maiat Token Check — ACP Seller Handler
+ * Maiat Token Forensics — ACP Seller Handler
  *
- * Checks any ERC-20 token for honeypot, tax, and trust score.
- * Calls /api/v1/token/[address] on app.maiat.io.
+ * Deep rug pull risk analysis for ERC-20 tokens.
+ * Calls /api/v1/token/[address]/forensics on app.maiat.io.
  */
 
 import type { ExecuteJobResult, ValidationResult } from "../../../runtime/offeringTypes.js";
@@ -28,7 +28,7 @@ export function validateRequirements(requirements: Record<string, unknown>): Val
 export function requestPayment(requirements: Record<string, unknown>): string {
   const token = requirements.token as string;
   const short = `${token.slice(0, 6)}...${token.slice(-4)}`;
-  return `Checking token safety for ${short}. Please proceed with payment.`;
+  return `Running deep forensics analysis on ${short}. This includes contract ownership, holder concentration, liquidity depth, and rug risk scoring. Please proceed with payment.`;
 }
 
 // ── Execution ─────────────────────────────────────────────────────────────────
@@ -36,67 +36,76 @@ export async function executeJob(requirements: Record<string, unknown>): Promise
   const token = requirements.token as string;
 
   try {
-    const res = await fetch(`${MAIAT_API}/api/v1/token/${token}`, {
-      headers: { "Content-Type": "application/json" },
-      signal: AbortSignal.timeout(15_000),
+    const res = await fetch(`${MAIAT_API}/api/v1/token/${token}/forensics`, {
+      headers: {
+        "Content-Type": "application/json",
+        "X-Maiat-Client": "maiat-acp-seller",
+      },
+      signal: AbortSignal.timeout(25_000),
     });
 
     if (!res.ok) {
       return {
         deliverable: JSON.stringify({
           address: token,
-          trustScore: 0,
-          verdict: "unknown",
+          rugScore: -1,
+          riskLevel: "unknown",
           riskFlags: ["API_ERROR"],
-          riskSummary: `Token check failed (HTTP ${res.status}). Proceed with caution.`,
+          summary: `Forensics analysis failed (HTTP ${res.status}). Proceed with extreme caution.`,
         }),
-        completionMessage: "Token check encountered an error.",
+        completionMessage: "Token forensics encountered an error.",
       };
     }
 
     const data = (await res.json()) as {
       address?: string;
-      tokenType?: string;
-      trustScore?: number;
-      verdict?: string;
+      rugScore?: number;
+      riskLevel?: string;
       riskFlags?: string[];
-      riskSummary?: string;
-      honeypot?: { isHoneypot?: boolean; buyTax?: number; sellTax?: number };
+      summary?: string;
+      contract?: Record<string, unknown>;
+      holders?: Record<string, unknown>;
+      liquidity?: Record<string, unknown>;
     };
 
-    const verdict = data.verdict ?? "unknown";
-    const score = data.trustScore ?? 0;
+    const rugScore = data.rugScore ?? -1;
+    const riskLevel = data.riskLevel ?? "unknown";
 
-    const summary =
-      verdict === "proceed"
-        ? `Token appears safe. Score: ${score}/100.`
-        : verdict === "caution"
-          ? `Proceed with caution. Score: ${score}/100. ${data.riskSummary ?? ""}`
-          : `HIGH RISK — avoid this token. Score: ${score}/100. ${data.riskSummary ?? ""}`;
+    let completionMessage: string;
+    if (riskLevel === "critical") {
+      completionMessage = `🚨 CRITICAL RUG RISK (${rugScore}/100). ${data.summary ?? "Do NOT interact with this token."}`;
+    } else if (riskLevel === "high") {
+      completionMessage = `⚠️ HIGH RISK (${rugScore}/100). ${data.summary ?? "Proceed with extreme caution."}`;
+    } else if (riskLevel === "medium") {
+      completionMessage = `⚡ MEDIUM RISK (${rugScore}/100). ${data.summary ?? "Some risk factors detected."}`;
+    } else {
+      completionMessage = `✅ LOW RISK (${rugScore}/100). ${data.summary ?? "No major rug indicators detected."}`;
+    }
 
     return {
       deliverable: JSON.stringify({
         address: data.address ?? token,
-        tokenType: data.tokenType ?? "unknown",
-        trustScore: score,
-        verdict,
+        rugScore,
+        riskLevel,
         riskFlags: data.riskFlags ?? [],
-        riskSummary: data.riskSummary ?? "",
-        honeypot: data.honeypot ?? null,
+        summary: data.summary ?? "",
+        contract: data.contract ?? null,
+        holders: data.holders ?? null,
+        liquidity: data.liquidity ?? null,
       }),
-      completionMessage: summary,
+      completionMessage,
     };
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     return {
       deliverable: JSON.stringify({
         address: token,
-        trustScore: 0,
-        verdict: "unknown",
+        rugScore: -1,
+        riskLevel: "unknown",
         riskFlags: ["FETCH_ERROR"],
-        riskSummary: `Could not reach Maiat API: ${msg}`,
+        summary: `Could not reach Maiat API: ${msg}`,
       }),
-      completionMessage: "Token check failed. Proceed with extreme caution.",
+      completionMessage: "Token forensics failed. Proceed with extreme caution.",
     };
   }
 }
