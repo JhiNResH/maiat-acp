@@ -6,7 +6,7 @@
 
 import type { ExecuteJobResult, ValidationResult } from "../../../runtime/offeringTypes.js";
 
-const MAIAT_API = process.env.MAIAT_API_URL || "https://maiat-protocol.vercel.app";
+const MAIAT_API = process.env.MAIAT_API_URL || "https://app.maiat.io";
 const INTERNAL_TOKEN = process.env.MAIAT_INTERNAL_TOKEN || "";
 
 interface TrustResult {
@@ -71,7 +71,13 @@ export function validateRequirements(requirements: Record<string, unknown>): Val
       reason: 'Invalid amount. Use ETH decimal ("0.01") or wei string ("10000000000000000").',
     };
   }
-  // swapper is optional — defaults to a placeholder in execution
+  if (!isValidAddress(requirements.swapper)) {
+    return {
+      valid: false,
+      reason:
+        "swapper address required. Pass your wallet address so Uniswap can generate executable calldata.",
+    };
+  }
 
   return { valid: true };
 }

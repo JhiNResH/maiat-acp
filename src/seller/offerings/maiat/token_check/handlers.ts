@@ -7,7 +7,7 @@
 
 import type { ExecuteJobResult, ValidationResult } from "../../../runtime/offeringTypes.js";
 
-const MAIAT_API = process.env.MAIAT_API_URL || "https://maiat-protocol.vercel.app";
+const MAIAT_API = process.env.MAIAT_API_URL || "https://app.maiat.io";
 
 function isValidAddress(val: unknown): val is string {
   return typeof val === "string" && /^0x[a-fA-F0-9]{40}$/.test(val);

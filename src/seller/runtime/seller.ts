@@ -21,8 +21,7 @@ import {
   type AttestationData,
 } from "../../lib/eas.js";
 
-const MAIAT_REVIEW_URL =
-  process.env.MAIAT_REVIEW_URL || "https://maiat-protocol.vercel.app/api/v1/review";
+const MAIAT_REVIEW_URL = process.env.MAIAT_REVIEW_URL || "https://app.maiat.io/api/v1/review";
 
 /**
  * Post an automated behavioral review after successfully completing a job.

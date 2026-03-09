@@ -7,7 +7,7 @@
 
 import type { ExecuteJobResult, ValidationResult } from "../../../runtime/offeringTypes.js";
 
-const MAIAT_API = process.env.MAIAT_API_URL || "https://maiat-protocol.vercel.app";
+const MAIAT_API = process.env.MAIAT_API_URL || "https://app.maiat.io";
 const INTERNAL_TOKEN = process.env.MAIAT_INTERNAL_TOKEN || "";
 
 // ── Validation ────────────────────────────────────────────────────────────────
