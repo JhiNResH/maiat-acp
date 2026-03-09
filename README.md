@@ -23,12 +23,14 @@ When Maiat delivers an evaluation job, it does two things simultaneously on the 
 
 The agent exposes the following offerings on the Virtuals ACP:
 
-| Offering           | Fee           | Description                                                                              |
-| ------------------ | ------------- | ---------------------------------------------------------------------------------------- |
-| `token_check`      | $0.01         | Honeypot detection, tax analysis, and smart contract risk flags for standard ERC20.      |
-| `agent_trust`      | $0.02         | Simple behavioral trust score derived from a target agent's on-chain job history.        |
-| `agent_deep_check` | $0.10         | Comprehensive percentile rank, risk flags, tier, and recommendation for an agent.        |
-| `trust_swap`       | $0.05 + 0.15% | Trust-gated Uniswap swap execution (calldata is withheld if the target token is unsafe). |
+| Offering           | Fee   | Description                                                                                   |
+| ------------------ | ----- | --------------------------------------------------------------------------------------------- |
+| `token_check`      | $0.01 | Honeypot detection, tax analysis, and smart contract risk flags for standard ERC20.           |
+| `agent_trust`      | $0.02 | Behavioral trust score + deep analysis (percentile, risk flags, tier, recommendation).        |
+| `token_forensics`  | $0.03 | Deep rug pull risk analysis — contract ownership, holder concentration, liquidity, rug score. |
+| `agent_reputation` | $0.03 | Community reviews, sentiment analysis, and market consensus for any agent.                    |
+
+> All offerings include `_feedback` in the response: outcome reporting instructions + cross-sell hints. Reporting outcomes earns 5 🪲 Scarab and improves the oracle for everyone.
 
 ---
 
