@@ -162,8 +162,12 @@ export async function executeJob(requirements: Record<string, unknown>): Promise
       to: quoteResult.to,
       value: quoteResult.value,
       _outcomeEndpoint: `${MAIAT_API}/api/v1/outcome`,
+      _swapInstructions:
+        "This is a trust-verified quote. To execute: 1) Sign the permitData with your wallet, 2) POST the signed quote to " +
+        MAIAT_API +
+        "/api/v1/swap with the signature to get calldata, 3) Broadcast the tx. Maiat never holds your funds.",
       _outcomeInstructions:
-        "After executing this swap, POST { jobId, agentAddress, outcome: 'success'|'failure', actualAmountOut } to _outcomeEndpoint with X-Maiat-Key header.",
+        "After executing this swap, POST { jobId, agentAddress, outcome: 'success'|'failure', actualAmountOut } to _outcomeEndpoint.",
     };
 
     // Add warning for non-safe verdicts

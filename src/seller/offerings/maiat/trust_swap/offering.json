@@ -1,6 +1,6 @@
 {
   "name": "trust_swap",
-  "description": "Trust-gated token swap: bundles token_check + Uniswap quote in one call. Before returning calldata, verifies the output token for honeypot risk, tax, and contract safety. Returns: trustScore, verdict, riskFlags, riskSummary, Uniswap quote (amountOut, priceImpact, route), unsigned calldata. You sign and submit — Maiat never holds funds. Use when: you want to swap but need safety verification first. If verdict is 'avoid', calldata is withheld. For check-only without swapping, use token_check.",
+  "description": "Trust-gated token swap: bundles token safety check + Uniswap best-route quote in one call. Returns: trustScore, verdict, riskFlags, Uniswap quote (amountOut, priceImpact, route, permitData). To execute: sign the permitData with your wallet, then POST to /api/v1/swap for calldata. Maiat never holds funds. If verdict is 'blocked', swap is rejected. For check-only without swapping, use token_check.",
   "jobFee": 0.05,
   "jobFeeType": "fixed",
   "requiredFunds": false,
