@@ -37,7 +37,7 @@ export async function executeJob(requirements: Record<string, unknown>): Promise
 
   try {
     const res = await fetch(`${MAIAT_API}/api/v1/token/${token}`, {
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-maiat-client": "maiat-acp" },
       signal: AbortSignal.timeout(15_000),
     });
 

@@ -47,7 +47,7 @@ export async function executeJob(requirements: Record<string, unknown>): Promise
   try {
     // Use /deep endpoint to get all data in one call
     const url = `${MAIAT_API}/api/v1/agent/${agent}/deep`;
-    const headers: Record<string, string> = {};
+    const headers: Record<string, string> = { "x-maiat-client": "maiat-acp" };
     if (INTERNAL_TOKEN) {
       headers["x-internal-token"] = INTERNAL_TOKEN;
     }
