@@ -6,6 +6,7 @@
  */
 
 import type { ExecuteJobResult, ValidationResult } from "../../../runtime/offeringTypes.js";
+import { createServiceAttestation, type Address } from "../../../../lib/eas.js";
 
 const MAIAT_API = process.env.MAIAT_API_URL || "https://app.maiat.io";
 
@@ -73,6 +74,17 @@ export async function executeJob(requirements: Record<string, unknown>): Promise
         : verdict === "caution"
           ? `Proceed with caution. Score: ${score}/100. ${data.riskSummary ?? ""}`
           : `HIGH RISK — avoid this token. Score: ${score}/100. ${data.riskSummary ?? ""}`;
+
+    // Non-blocking EAS attestation
+    createServiceAttestation({
+      agent: token as Address,
+      service: "token_check",
+      result: "success",
+      trustScoreAtTime: score,
+      jobId: 0,
+    }).catch((err) => {
+      console.error("[eas] token_check attestation failed:", err);
+    });
 
     return {
       deliverable: JSON.stringify({

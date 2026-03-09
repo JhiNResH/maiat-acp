@@ -6,6 +6,7 @@
  */
 
 import type { ExecuteJobResult, ValidationResult } from "../../../runtime/offeringTypes.js";
+import { createServiceAttestation, type Address } from "../../../../lib/eas.js";
 
 const MAIAT_API = process.env.MAIAT_API_URL || "https://app.maiat.io";
 
@@ -81,6 +82,17 @@ export async function executeJob(requirements: Record<string, unknown>): Promise
     } else {
       completionMessage = `✅ LOW RISK (${rugScore}/100). ${data.summary ?? "No major rug indicators detected."}`;
     }
+
+    // Non-blocking EAS attestation
+    createServiceAttestation({
+      agent: token as Address,
+      service: "token_forensics",
+      result: "success",
+      trustScoreAtTime: 100 - rugScore, // Invert rugScore: lower rug = higher trust
+      jobId: 0,
+    }).catch((err) => {
+      console.error("[eas] token_forensics attestation failed:", err);
+    });
 
     return {
       deliverable: JSON.stringify({

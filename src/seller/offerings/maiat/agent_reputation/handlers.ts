@@ -6,6 +6,7 @@
  */
 
 import type { ExecuteJobResult, ValidationResult } from "../../../runtime/offeringTypes.js";
+import { createServiceAttestation, type Address } from "../../../../lib/eas.js";
 
 const MAIAT_API = process.env.MAIAT_API_URL || "https://app.maiat.io";
 const INTERNAL_TOKEN = process.env.MAIAT_INTERNAL_TOKEN || "";
@@ -119,6 +120,17 @@ export async function executeJob(requirements: Record<string, unknown>): Promise
     } catch {
       // Market data optional
     }
+
+    // Non-blocking EAS attestation
+    createServiceAttestation({
+      agent: agent as Address,
+      service: "agent_reputation",
+      result: "success",
+      trustScoreAtTime: Math.round(avgRating * 20), // Convert 0-5 to 0-100
+      jobId: 0,
+    }).catch((err) => {
+      console.error("[eas] agent_reputation attestation failed:", err);
+    });
 
     return {
       deliverable: JSON.stringify({
