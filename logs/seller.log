@@ -12362,3 +12362,113 @@ Version: viem@2.46.3
 [seller] Auto-review failed for job 1002610212: Review API 402: {"error":"Insufficient Scarab points","detail":"Insufficient Scarab. Need 2, have 0","hint":"Claim daily Scarab at /api/v1/scarab/claim or purchase at /api/v1/scarab/purchase"}
 [eas] Attestation created — UID: 0x594ee38dc96304ceedc1338dec3dc6483c22a69b6c49d9114ade4baecdb1f2f5 tx: 0x656b75701b38c50fec9a73f77ea9d54419ba9e7ceff6a262433f47d30461dd50
 [oracle] Score updated — agent: 0xf4b48521960C7e78fCf89859c42d912cdcd0FC06 score: 72 tx: 0x5a667c4e58291a1a0502aaa83aa687b568e3c21ca981d7ea3151fca848d56922
+[seller] Agent: Maiat (dir: maiat)
+[seller] Available offerings: _archived, agent_reputation, agent_trust, token_check, token_forensics
+[seller] Seller runtime is running. Waiting for jobs...
+
+[socket] Connected to ACP
+[socket] Joined ACP room
+[socket] onNewTask  jobId=1002830124  phase=0
+
+============================================================
+[seller] New task  jobId=1002830124  phase=REQUEST
+         client=0x7670F610707677D2124D58730Bf30CFB9942575A  price=0.02
+         context=null
+============================================================
+[sellerApi] acceptOrRejectJob  jobId=1002830124  accept=true  reason=Job accepted
+[seller] Job 1002830124 in phase REQUEST — no action needed
+[socket] onNewTask  jobId=1002830124  phase=2
+
+============================================================
+[seller] New task  jobId=1002830124  phase=TRANSACTION
+         client=0x7670F610707677D2124D58730Bf30CFB9942575A  price=0.02
+         context=null
+============================================================
+[seller] Executing offering "agent_trust" for job 1002830124 (TRANSACTION phase)...
+[sellerApi] deliverJob  jobId=1002830124  deliverable={"score":null,"verdict":"unknown","completionRate":null,"paymentRate":null,"totalJobs":0,"ageWeeks":null,"riskSummary":"Agent not yet indexed — no ACP job history found","lastUpdated":null}
+[seller] Error delivering job 1002830124: Error: {"statusCode":500,"message":"Failed to process job deliverable: Job is not in transaction phase"}
+    at <anonymous> (/Users/jhinresh/maiat-acp/src/lib/client.ts:25:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async Axios.request (file:///Users/jhinresh/maiat-acp/node_modules/axios/lib/core/Axios.js:40:14)
+    at async deliverJob (/Users/jhinresh/maiat-acp/src/seller/runtime/sellerApi.ts:62:10)
+    at async handleNewTask (/Users/jhinresh/maiat-acp/src/seller/runtime/seller.ts:233:9)
+[socket] onNewTask  jobId=1002830148  phase=0
+
+============================================================
+[seller] New task  jobId=1002830148  phase=REQUEST
+         client=0x7670F610707677D2124D58730Bf30CFB9942575A  price=0.01
+         context=null
+============================================================
+[sellerApi] acceptOrRejectJob  jobId=1002830148  accept=true  reason=Job accepted
+[socket] onNewTask  jobId=1002830149  phase=0
+
+============================================================
+[seller] New task  jobId=1002830149  phase=REQUEST
+         client=0x7670F610707677D2124D58730Bf30CFB9942575A  price=0.03
+         context=null
+============================================================
+[sellerApi] acceptOrRejectJob  jobId=1002830149  accept=true  reason=Job accepted
+[seller] Job 1002830148 in phase REQUEST — no action needed
+[socket] onNewTask  jobId=1002830150  phase=0
+
+============================================================
+[seller] New task  jobId=1002830150  phase=REQUEST
+         client=0x7670F610707677D2124D58730Bf30CFB9942575A  price=0.03
+         context=null
+============================================================
+[sellerApi] acceptOrRejectJob  jobId=1002830150  accept=true  reason=Job accepted
+[seller] Job 1002830149 in phase REQUEST — no action needed
+[socket] onNewTask  jobId=1002830151  phase=0
+
+============================================================
+[seller] New task  jobId=1002830151  phase=REQUEST
+         client=0x7670F610707677D2124D58730Bf30CFB9942575A  price=0.03
+         context=null
+============================================================
+[sellerApi] acceptOrRejectJob  jobId=1002830151  accept=true  reason=Job accepted
+[seller] Job 1002830150 in phase REQUEST — no action needed
+[socket] onNewTask  jobId=1002830148  phase=2
+
+============================================================
+[seller] New task  jobId=1002830148  phase=TRANSACTION
+         client=0x7670F610707677D2124D58730Bf30CFB9942575A  price=0.01
+         context=null
+============================================================
+[seller] Executing offering "token_check" for job 1002830148 (TRANSACTION phase)...
+[sellerApi] deliverJob  jobId=1002830148  deliverable={"address":"0x0b3e328455c4059EEb9e3f84b5543F74E24e7E1b","tokenType":"known_safe","trustScore":100,"verdict":"proceed","riskFlags":[],"riskSummary":"Virtual Protocol (VIRTUAL) is a verified safe token.","honeypot":null,"_feedback":{"queryId":"token-1773041039905","reportOutcome":"After trading this token, POST outcome to https://app.maiat.io/api/v1/outcome — earn 5 🪲 Scarab.","deeperInsight":"Want full rug analysis? Buy token_forensics ($0.03) for contract audit, holder analysis, and owner status."}}
+[socket] onNewTask  jobId=1002830149  phase=2
+
+============================================================
+[seller] New task  jobId=1002830149  phase=TRANSACTION
+         client=0x7670F610707677D2124D58730Bf30CFB9942575A  price=0.03
+         context=null
+============================================================
+[seller] Executing offering "token_forensics" for job 1002830149 (TRANSACTION phase)...
+[sellerApi] deliverJob  jobId=1002830149  deliverable={"address":"0x0b3e328455c4059EEb9e3f84b5543F74E24e7E1b","rugScore":-1,"riskLevel":"unknown","riskFlags":["FETCH_ERROR"],"summary":"Could not reach Maiat API: Cannot access 'MAIAT_API2' before initialization"}
+[seller] Job 1002830148 — delivered.
+[seller] Job 1002830149 — delivered.
+[seller] Job 1002830151 in phase REQUEST — no action needed
+[seller] Auto-review failed for job 1002830149: Review API 402: {"error":"Insufficient Scarab points","detail":"Insufficient Scarab. Need 5, have 2","hint":"Claim daily Scarab at /api/v1/scarab/claim or purchase at /api/v1/scarab/purchase"}
+[socket] onNewTask  jobId=1002830150  phase=2
+
+============================================================
+[seller] New task  jobId=1002830150  phase=TRANSACTION
+         client=0x7670F610707677D2124D58730Bf30CFB9942575A  price=0.03
+         context=null
+============================================================
+[seller] Executing offering "agent_reputation" for job 1002830150 (TRANSACTION phase)...
+[seller] Auto-review posted for 0x7670F610707677D2124D58730Bf30CFB9942575A (job 1002830148, token_check)
+[sellerApi] deliverJob  jobId=1002830150  deliverable={"avgRating":8.5,"reviewCount":2,"sentiment":{"positive":2,"negative":0,"neutral":0},"communityVerdict":"trusted","topReviews":[{"rating":9,"comment":"23K jobs completed, 90% payment rate, 99th percentile veteran. Zero risk flags. Reliable agent for high-value tasks.","qualityScore":53,"interactionTier":"none","source":"agent","upvotes":0,"downvotes":0,"date":"2026-03-09T02:55:38.452Z"},{"rating":8,"comment":"test review","qualityScore":13,"interactionTier":"none","source":"agent","upvotes":0,"downvotes":0,"date":"2026-03-09T02:11:35.137Z"}],"marketConsensus":"No market data","totalScarabStaked":0,"_feedback":{"queryId":"rep-1773041051151","reportOutcome":"After interacting with this agent, report outcome at POST https://app.maiat.io/api/v1/outcome — you'll earn 5 🪲 Scarab and improve your own trust score."}}
+[seller] Job 1002830150 — delivered.
+[seller] Auto-review failed for job 1002830150: Review API 402: {"error":"Insufficient Scarab points","detail":"Insufficient Scarab. Need 5, have 2","hint":"Claim daily Scarab at /api/v1/scarab/claim or purchase at /api/v1/scarab/purchase"}
+[socket] onNewTask  jobId=1002830151  phase=2
+
+============================================================
+[seller] New task  jobId=1002830151  phase=TRANSACTION
+         client=0x7670F610707677D2124D58730Bf30CFB9942575A  price=0.03
+         context=null
+============================================================
+[seller] Executing offering "agent_reputation" for job 1002830151 (TRANSACTION phase)...
+[sellerApi] deliverJob  jobId=1002830151  deliverable={"avgRating":8.5,"reviewCount":2,"sentiment":{"positive":2,"negative":0,"neutral":0},"communityVerdict":"trusted","topReviews":[{"rating":9,"comment":"23K jobs completed, 90% payment rate, 99th percentile veteran. Zero risk flags. Reliable agent for high-value tasks.","qualityScore":53,"interactionTier":"none","source":"agent","upvotes":0,"downvotes":0,"date":"2026-03-09T02:55:38.452Z"},{"rating":8,"comment":"test review","qualityScore":13,"interactionTier":"none","source":"agent","upvotes":0,"downvotes":0,"date":"2026-03-09T02:11:35.137Z"}],"marketConsensus":"No market data","totalScarabStaked":0,"_feedback":{"queryId":"rep-1773041058954","reportOutcome":"After interacting with this agent, report outcome at POST https://app.maiat.io/api/v1/outcome — you'll earn 5 🪲 Scarab and improve your own trust score."}}
+[seller] Job 1002830151 — delivered.
+[seller] Auto-review failed for job 1002830151: Review API 402: {"error":"Insufficient Scarab points","detail":"Insufficient Scarab. Need 5, have 2","hint":"Claim daily Scarab at /api/v1/scarab/claim or purchase at /api/v1/scarab/purchase"}
