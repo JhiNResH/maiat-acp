@@ -45,7 +45,8 @@ export async function executeJob(requirements: Record<string, unknown>): Promise
   const threshold = typeof requirements.threshold === "number" ? requirements.threshold : 60;
 
   try {
-    const url = `${MAIAT_API}/api/v1/agent/${agent}`;
+    // Use /deep endpoint to get all data in one call
+    const url = `${MAIAT_API}/api/v1/agent/${agent}/deep`;
     const headers: Record<string, string> = {};
     if (INTERNAL_TOKEN) {
       headers["x-internal-token"] = INTERNAL_TOKEN;
@@ -78,18 +79,25 @@ export async function executeJob(requirements: Record<string, unknown>): Promise
 
     const data = (await res.json()) as Record<string, unknown>;
     const breakdown = (data.breakdown ?? {}) as Record<string, unknown>;
+    const deep = (data.deep ?? {}) as Record<string, unknown>;
 
     const score = typeof data.trustScore === "number" ? data.trustScore : null;
     const completionRate =
       typeof breakdown.completionRate === "number" ? breakdown.completionRate : null;
     const paymentRate = typeof breakdown.paymentRate === "number" ? breakdown.paymentRate : null;
+    const expireRate = typeof breakdown.expireRate === "number" ? breakdown.expireRate : null;
     const totalJobs = typeof breakdown.totalJobs === "number" ? breakdown.totalJobs : 0;
     const ageWeeks = typeof breakdown.ageWeeks === "number" ? breakdown.ageWeeks : null;
     const lastUpdated = typeof data.lastUpdated === "string" ? data.lastUpdated : null;
-    // Use API verdict if available
     const apiVerdict = typeof data.verdict === "string" ? data.verdict : null;
 
-    // Determine verdict — prefer API verdict, fall back to threshold logic
+    // Deep fields
+    const percentile = typeof deep.percentile === "number" ? deep.percentile : null;
+    const tier = typeof deep.tier === "string" ? deep.tier : "new";
+    const riskFlags = Array.isArray(deep.riskFlags) ? deep.riskFlags : [];
+    const category = typeof deep.category === "string" ? deep.category : null;
+
+    // Determine verdict
     let verdict: string;
     if (apiVerdict && apiVerdict !== "unknown") {
       verdict = apiVerdict;
@@ -121,8 +129,13 @@ export async function executeJob(requirements: Record<string, unknown>): Promise
         verdict,
         completionRate,
         paymentRate,
+        expireRate,
         totalJobs,
         ageWeeks,
+        percentile,
+        tier,
+        riskFlags,
+        category,
         riskSummary,
         lastUpdated,
       }),
