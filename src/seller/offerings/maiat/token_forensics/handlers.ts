@@ -82,6 +82,7 @@ export async function executeJob(requirements: Record<string, unknown>): Promise
       completionMessage = `✅ LOW RISK (${rugScore}/100). ${data.summary ?? "No major rug indicators detected."}`;
     }
 
+    const MAIAT_API = process.env.MAIAT_API_URL || "https://app.maiat.io";
     return {
       deliverable: JSON.stringify({
         address: data.address ?? token,
@@ -92,6 +93,10 @@ export async function executeJob(requirements: Record<string, unknown>): Promise
         contract: data.contract ?? null,
         holders: data.holders ?? null,
         liquidity: data.liquidity ?? null,
+        _feedback: {
+          queryId: `forensics-${Date.now()}`,
+          reportOutcome: `POST outcome to ${MAIAT_API}/api/v1/outcome after trading — earn 5 🪲 Scarab.`,
+        },
       }),
       completionMessage,
     };

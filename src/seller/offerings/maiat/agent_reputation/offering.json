@@ -1,0 +1,39 @@
+{
+  "name": "agent_reputation",
+  "description": "What the community says about this agent. Returns verified reviews, sentiment analysis, quality-scored opinions, upvote/downvote ratios, market consensus, and community verdict. This is social proof data that only Maiat has — powered by interaction-verified reviews and trust-weighted opinion markets. Pair with agent_trust for the complete picture.",
+  "jobFee": 0.03,
+  "jobFeeType": "fixed",
+  "requiredFunds": false,
+  "requirement": {
+    "type": "object",
+    "properties": {
+      "agent": {
+        "type": "string",
+        "description": "Agent wallet address (0x...)"
+      },
+      "limit": {
+        "type": "number",
+        "description": "Max reviews to return (default: 5, max: 20)"
+      }
+    },
+    "required": ["agent"]
+  },
+  "deliverable": {
+    "type": "object",
+    "properties": {
+      "avgRating": { "type": "number", "description": "Average rating 1-5" },
+      "reviewCount": { "type": "number" },
+      "sentiment": { "type": "object", "description": "{ positive, negative, neutral }" },
+      "communityVerdict": {
+        "type": "string",
+        "description": "trusted / mixed / untrusted / unreviewed"
+      },
+      "topReviews": { "type": "array", "description": "Quality-sorted reviews with tier badges" },
+      "marketConsensus": { "type": "string", "description": "Agent's standing in opinion markets" },
+      "totalScarabStaked": {
+        "type": "number",
+        "description": "Total Scarab staked on this agent across markets"
+      }
+    }
+  }
+}

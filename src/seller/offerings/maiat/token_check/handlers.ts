@@ -83,6 +83,14 @@ export async function executeJob(requirements: Record<string, unknown>): Promise
         riskFlags: data.riskFlags ?? [],
         riskSummary: data.riskSummary ?? "",
         honeypot: data.honeypot ?? null,
+        _feedback: {
+          queryId: `token-${Date.now()}`,
+          reportOutcome: `After trading this token, POST outcome to ${MAIAT_API}/api/v1/outcome — earn 5 🪲 Scarab.`,
+          deeperInsight:
+            verdict !== "safe"
+              ? `Want full rug analysis? Buy token_forensics ($0.03) for contract audit, holder analysis, and owner status.`
+              : undefined,
+        },
       }),
       completionMessage: summary,
     };
