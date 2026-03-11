@@ -43,10 +43,11 @@ async function main() {
   console.log("\n  Maiat Contract Deployment");
   console.log("  " + "=".repeat(50));
 
-  const pk = process.env.MAIAT_PRIVATE_KEY as Hex | undefined;
-  if (!pk) {
-    console.error("  ❌ MAIAT_PRIVATE_KEY is required");
-    console.error("     Usage: MAIAT_PRIVATE_KEY=0x... npx tsx scripts/deploy-contracts.ts\n");
+  const rawPk = process.env.DEPLOY_PRIVATE_KEY ?? process.env.MAIAT_PRIVATE_KEY ?? "";
+  const pk = (rawPk.startsWith("0x") ? rawPk : `0x${rawPk}`) as Hex;
+  if (!rawPk) {
+    console.error("  ❌ DEPLOY_PRIVATE_KEY (or MAIAT_PRIVATE_KEY) is required");
+    console.error("     Usage: DEPLOY_PRIVATE_KEY=0x... npx tsx scripts/deploy-contracts.ts\n");
     process.exit(1);
   }
 
@@ -58,6 +59,9 @@ async function main() {
   const publicClient = createPublicClient({ chain: base, transport: http(BASE_RPC) });
   const walletClient = createWalletClient({ account, chain: base, transport: http(BASE_RPC) });
 
+  const ACP_WALLET = "0xB1e504aE1ce359B4C2a6DC5d63aE6199a415f312" as const;
+  console.log(`  ACP Wallet: ${ACP_WALLET} (operator/attester)\n`);
+
   // ── 1. Deploy MaiatReceiptResolver ──────────────────────────────────
   console.log("  [1/2] Deploying MaiatReceiptResolver...");
   const resolver = loadBuildArtifact("contracts_MaiatReceiptResolver_sol_MaiatReceiptResolver");
@@ -65,7 +69,7 @@ async function main() {
   const resolverHash = await walletClient.deployContract({
     abi: resolver.abi,
     bytecode: resolver.bytecode,
-    args: [EAS_ADDRESS, account.address], // eas, maiatAttester
+    args: [EAS_ADDRESS, ACP_WALLET], // eas, maiatAttester = ACP hot wallet
   });
 
   console.log(`        TX: ${resolverHash}`);
@@ -80,7 +84,7 @@ async function main() {
   const oracleHash = await walletClient.deployContract({
     abi: oracle.abi,
     bytecode: oracle.bytecode,
-    args: [account.address], // operator = deployer
+    args: [ACP_WALLET], // operator = ACP hot wallet (owner = deployer msg.sender)
   });
 
   console.log(`        TX: ${oracleHash}`);

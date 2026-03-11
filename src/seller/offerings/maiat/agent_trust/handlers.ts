@@ -8,6 +8,7 @@ import type { ExecuteJobResult, ValidationResult } from "../../../runtime/offeri
 import { createServiceAttestation, type Address } from "../../../../lib/eas.js";
 
 const MAIAT_API = process.env.MAIAT_API_URL || "https://app.maiat.io";
+const WADJET_API = process.env.WADJET_API_URL || "https://wadjet-production.up.railway.app";
 const INTERNAL_TOKEN = process.env.MAIAT_INTERNAL_TOKEN || "";
 
 // ── Validation ────────────────────────────────────────────────────────────────
@@ -130,15 +131,52 @@ export async function executeJob(requirements: Record<string, unknown>): Promise
       service: "agent_trust",
       result: "success",
       trustScoreAtTime: score ?? 0,
-      jobId: 0, // No job ID available in query context
+      jobId: 0,
     }).catch((err) => {
       console.error("[eas] agent_trust attestation failed:", err);
     });
+
+    // ── Token health (from Wadjet) — merged into trust response ──────────
+    let tokenHealth: Record<string, unknown> | null = null;
+    let riskOutlook = "stable";
+    const tokenAddress = typeof data.tokenAddress === "string" ? data.tokenAddress : null;
+
+    if (tokenAddress) {
+      try {
+        const wadjetRes = await fetch(`${WADJET_API}/predict`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token_address: tokenAddress }),
+          signal: AbortSignal.timeout(10_000),
+        });
+        if (wadjetRes.ok) {
+          const wadjetData = (await wadjetRes.json()) as Record<string, unknown>;
+          const rugProb =
+            typeof wadjetData.rug_probability === "number" ? wadjetData.rug_probability : 0;
+          const riskLevel =
+            typeof wadjetData.risk_level === "string" ? wadjetData.risk_level : "unknown";
+          tokenHealth = {
+            tokenAddress,
+            rugProbability: rugProb,
+            riskLevel,
+            confidence: wadjetData.confidence ?? null,
+          };
+          if (rugProb > 0.7 && verdict === "proceed") {
+            verdict = "caution";
+            riskSummary += ` ⚠️ Token risk elevated (${(rugProb * 100).toFixed(0)}% rug probability)`;
+          }
+          riskOutlook = rugProb > 0.7 ? "deteriorating" : rugProb > 0.4 ? "uncertain" : "stable";
+        }
+      } catch {
+        // Wadjet unavailable — don't block the response
+      }
+    }
 
     return {
       deliverable: JSON.stringify({
         score,
         verdict,
+        riskOutlook,
         completionRate,
         paymentRate,
         expireRate,
@@ -149,6 +187,7 @@ export async function executeJob(requirements: Record<string, unknown>): Promise
         riskFlags,
         category,
         riskSummary,
+        tokenHealth,
         lastUpdated,
         _feedback: {
           queryId: `trust-${Date.now()}`,

@@ -40,10 +40,11 @@ async function main() {
   console.log("\n  EAS Schema Re-Registration (with Resolver)");
   console.log("  " + "=".repeat(50));
 
-  const pk = process.env.MAIAT_PRIVATE_KEY as Hex | undefined;
+  const rawPk = process.env.DEPLOY_PRIVATE_KEY ?? process.env.MAIAT_PRIVATE_KEY ?? "";
+  const pk = (rawPk.startsWith("0x") ? rawPk : `0x${rawPk}`) as Hex;
   const resolverAddress = process.env.MAIAT_RESOLVER_ADDRESS as Address | undefined;
 
-  if (!pk) {
+  if (!rawPk) {
     console.error("  ❌ MAIAT_PRIVATE_KEY is required");
     process.exit(1);
   }

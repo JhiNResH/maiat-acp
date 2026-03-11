@@ -2,7 +2,7 @@
  * Maiat Token Check — ACP Seller Handler
  *
  * Checks any ERC-20 token for honeypot, tax, and trust score.
- * Calls /api/v1/token/[address] on maiat-protocol.vercel.app.
+ * Calls /api/v1/token/[address] on app.maiat.io.
  */
 
 import type { ExecuteJobResult, ValidationResult } from "../../../runtime/offeringTypes.js";

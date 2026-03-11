@@ -1,6 +1,6 @@
 {
   "name": "agent_trust",
-  "description": "Before paying another agent, call this to verify their reliability. Returns: trustScore 0-100, verdict (proceed/caution/avoid), completionRate, paymentRate, expireRate, totalJobs — sourced from on-chain Virtuals ACP job history, covers all registered agents. Use when: you are about to hire an unknown agent for any job. If verdict is 'avoid', do not proceed. For checking a token address before swapping, use token_check instead.",
+  "description": "Before paying another agent, call this to verify their reliability. Returns: trustScore 0-100, verdict (proceed/caution/avoid), riskOutlook (stable/uncertain/deteriorating), completionRate, paymentRate, totalJobs, and tokenHealth (if agent has a token). Powered by Wadjet — combines ACP job history, on-chain behavior, and token health into one trust answer. Use when: you are about to hire an unknown agent for any job. If verdict is 'avoid', do not proceed.",
   "jobFee": 0.02,
   "jobFeeType": "fixed",
   "requiredFunds": false,
@@ -31,7 +31,21 @@
       "paymentRate": { "type": "number" },
       "totalJobs": { "type": "number" },
       "ageWeeks": { "type": "number" },
+      "riskOutlook": {
+        "type": "string",
+        "description": "stable | uncertain | deteriorating — predictive outlook"
+      },
       "riskSummary": { "type": "string", "description": "One-line human-readable summary" },
+      "tokenHealth": {
+        "type": "object",
+        "description": "Token risk data from Wadjet (if agent has a token)",
+        "properties": {
+          "tokenAddress": { "type": "string" },
+          "rugProbability": { "type": "number", "description": "0-1, higher = riskier" },
+          "riskLevel": { "type": "string" },
+          "confidence": { "type": "number" }
+        }
+      },
       "lastUpdated": { "type": "string" }
     }
   }
