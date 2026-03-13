@@ -1,6 +1,6 @@
 {
   "name": "agent_trust",
-  "description": "Before paying another agent, call this to verify their reliability. Returns: trustScore 0-100, verdict (trusted/proceed/caution/avoid), riskOutlook (stable/uncertain/deteriorating), completionRate, paymentRate, totalJobs, and tokenHealth (if agent has a token). Powered by Wadjet — combines ACP job history, on-chain behavior, and token health into one trust answer. Use when: you are about to hire an unknown agent for any job. If verdict is 'avoid', do not proceed.",
+  "description": "Complete trust + behavioral profile for any ACP agent. Returns: trustScore 0-100, verdict (trusted/proceed/caution/avoid), completionRate, paymentRate, totalJobs, riskOutlook, behavioral analysis (trend direction, buyer diversity, wash-trading detection, payment reliability), and Wadjet ML risk signals (tokenHealth, rugProbability). All data from on-chain ACP history + Wadjet ML engine. Use when: you are about to hire, delegate to, or pay an unknown agent. If verdict is 'avoid', do not proceed.",
   "jobFee": 0.02,
   "jobFeeType": "fixed",
   "requiredFunds": false,
@@ -9,7 +9,7 @@
     "properties": {
       "agent": {
         "type": "string",
-        "description": "0x wallet address of the ACP agent to check (also accepts 'wallet' or 'address')"
+        "description": "0x wallet address of the ACP agent to check (also accepts 'wallet', 'address', or 'walletAddress')"
       },
       "wallet": {
         "type": "string",
@@ -39,6 +39,28 @@
         "description": "stable | uncertain | deteriorating — predictive outlook"
       },
       "riskSummary": { "type": "string", "description": "One-line human-readable summary" },
+      "behavioral": {
+        "type": "object",
+        "description": "Deep behavioral analysis",
+        "properties": {
+          "trendDirection": {
+            "type": "string",
+            "description": "improving | declining | stable | unknown"
+          },
+          "buyerDiversityScore": {
+            "type": "number",
+            "description": "0-100, higher = more diverse clients"
+          },
+          "singleBuyerRisk": {
+            "type": "boolean",
+            "description": "True if >80% jobs from one buyer (wash trading signal)"
+          },
+          "paymentReliability": {
+            "type": "string",
+            "description": "excellent | good | concerning | poor"
+          }
+        }
+      },
       "tokenHealth": {
         "type": "object",
         "description": "Token risk data from Wadjet (if agent has a token)",
