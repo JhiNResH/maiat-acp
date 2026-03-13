@@ -98,10 +98,15 @@ export async function executeJob(requirements: Record<string, unknown>): Promise
         _feedback: {
           queryId: `token-${Date.now()}`,
           reportOutcome: `After trading this token, POST outcome to ${MAIAT_API}/api/v1/outcome — earn 5 🪲 Scarab.`,
-          deeperInsight:
-            verdict !== "safe"
-              ? `Want full rug analysis? Buy token_forensics ($0.03) for contract audit, holder analysis, and owner status.`
-              : undefined,
+          relatedOfferings: {
+            token_forensics:
+              "Deep rug pull analysis — holder concentration, contract ownership, Wadjet ML ($0.05)",
+            trust_swap:
+              "Ready to swap? Trust-gated Uniswap calldata — safety check + quote in one call ($0.05)",
+            agent_trust:
+              "Check the agent selling you this token — trust score + behavioral analysis ($0.02)",
+            agent_reputation: "Community reviews and sentiment for any agent ($0.03)",
+          },
         },
       }),
       completionMessage: summary,

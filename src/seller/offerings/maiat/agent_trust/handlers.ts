@@ -192,7 +192,15 @@ export async function executeJob(requirements: Record<string, unknown>): Promise
         _feedback: {
           queryId: `trust-${Date.now()}`,
           reportOutcome: `After interacting with this agent, POST outcome to ${MAIAT_API}/api/v1/outcome — earn 5 🪲 Scarab and boost your own trust score.`,
-          deeperInsight: `Want community opinions? Buy agent_reputation ($0.03) for reviews, votes, and market consensus.`,
+          relatedOfferings: {
+            agent_reputation:
+              "Want community opinions? Reviews, votes, and market consensus ($0.03)",
+            token_check: "Quick token safety check — honeypot, tax, liquidity ($0.01)",
+            token_forensics:
+              "Deep rug pull analysis — holder concentration, contract ownership, Wadjet ML ($0.05)",
+            trust_swap:
+              "Trust-gated swap — bundles token safety check + Uniswap calldata in one call. You sign, we never hold funds ($0.05)",
+          },
         },
       }),
     };
