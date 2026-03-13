@@ -1,6 +1,6 @@
 {
   "name": "token_check",
-  "description": "Before swapping into an unknown ERC-20 token on Base, call this to verify it is safe. Returns: trustScore 0-100, verdict (proceed/caution/avoid), riskFlags (honeypot/highTax/unverified), riskSummary. Use when: you have a token address and want to know if it is safe to buy. For hiring agents instead of checking tokens, use agent_trust. For a bundled check+swap in one call, use trust_swap.",
+  "description": "Before swapping into an unknown ERC-20 token on Base, call this to verify it is safe. Returns: trustScore 0-100, verdict (trusted/proceed/caution/avoid), riskFlags (honeypot/highTax/unverified), riskSummary. Use when: you have a token address and want to know if it is safe to buy. For hiring agents instead of checking tokens, use agent_trust. For a bundled check+swap in one call, use trust_swap.",
   "jobFee": 0.01,
   "jobFeeType": "fixed",
   "requiredFunds": false,
@@ -20,7 +20,7 @@
       "address": { "type": "string" },
       "tokenType": { "type": "string", "description": "known_safe | agent_token | memecoin" },
       "trustScore": { "type": "number", "description": "0-100" },
-      "verdict": { "type": "string", "description": "proceed | caution | avoid" },
+      "verdict": { "type": "string", "description": "trusted | proceed | caution | avoid" },
       "riskFlags": { "type": "array", "items": { "type": "string" } },
       "riskSummary": { "type": "string" },
       "honeypot": {

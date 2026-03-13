@@ -1,6 +1,6 @@
 {
   "name": "agent_trust",
-  "description": "Before paying another agent, call this to verify their reliability. Returns: trustScore 0-100, verdict (proceed/caution/avoid), riskOutlook (stable/uncertain/deteriorating), completionRate, paymentRate, totalJobs, and tokenHealth (if agent has a token). Powered by Wadjet — combines ACP job history, on-chain behavior, and token health into one trust answer. Use when: you are about to hire an unknown agent for any job. If verdict is 'avoid', do not proceed.",
+  "description": "Before paying another agent, call this to verify their reliability. Returns: trustScore 0-100, verdict (trusted/proceed/caution/avoid), riskOutlook (stable/uncertain/deteriorating), completionRate, paymentRate, totalJobs, and tokenHealth (if agent has a token). Powered by Wadjet — combines ACP job history, on-chain behavior, and token health into one trust answer. Use when: you are about to hire an unknown agent for any job. If verdict is 'avoid', do not proceed.",
   "jobFee": 0.02,
   "jobFeeType": "fixed",
   "requiredFunds": false,
@@ -26,7 +26,10 @@
     "type": "object",
     "properties": {
       "score": { "type": "number", "description": "Trust score 0-100" },
-      "verdict": { "type": "string", "description": "proceed | caution | avoid | unknown" },
+      "verdict": {
+        "type": "string",
+        "description": "trusted | proceed | caution | avoid | unknown"
+      },
       "completionRate": { "type": "number" },
       "paymentRate": { "type": "number" },
       "totalJobs": { "type": "number" },
