@@ -59,7 +59,10 @@ async function postAutoReview(
 
   const res = await fetch(MAIAT_REVIEW_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "X-Maiat-Client": "maiat-acp-seller",
+    },
     body: JSON.stringify({
       address: clientAddress,
       rating,
