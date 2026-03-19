@@ -1,0 +1,63 @@
+{
+  "name": "evaluate",
+  "description": "Evaluate an ACP job deliverable for quality and trust. Checks provider trust score, detects garbage deliverables, and returns approve/reject verdict. Use as your job evaluator to protect every transaction. ERC-8183 compliant.",
+  "jobFee": 0.02,
+  "jobFeeType": "fixed",
+  "requiredFunds": false,
+  "requirement": {
+    "type": "object",
+    "properties": {
+      "provider": {
+        "type": "string",
+        "description": "0x wallet address of the provider (agent that delivered the job)"
+      },
+      "deliverable": {
+        "type": "string",
+        "description": "The job deliverable content to evaluate (JSON string or plain text)"
+      },
+      "jobId": {
+        "type": "number",
+        "description": "ACP job ID being evaluated (optional, for tracking)"
+      },
+      "minTrustScore": {
+        "type": "number",
+        "description": "Minimum trust score to approve (default: 30)"
+      }
+    },
+    "required": ["provider", "deliverable"]
+  },
+  "deliverable": {
+    "type": "object",
+    "properties": {
+      "approved": {
+        "type": "boolean",
+        "description": "Whether the deliverable passed evaluation"
+      },
+      "verdict": {
+        "type": "string",
+        "description": "approve | reject"
+      },
+      "reason": {
+        "type": "string",
+        "description": "Human-readable explanation for the verdict"
+      },
+      "trustScore": {
+        "type": "number",
+        "description": "Provider trust score 0-100"
+      },
+      "trustVerdict": {
+        "type": "string",
+        "description": "trusted | proceed | caution | avoid | unknown"
+      },
+      "qualityChecks": {
+        "type": "object",
+        "description": "Deliverable quality assessment",
+        "properties": {
+          "isGarbage": { "type": "boolean" },
+          "contentLength": { "type": "number" },
+          "hasStructuredData": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}
