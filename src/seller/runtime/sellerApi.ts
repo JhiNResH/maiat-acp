@@ -39,6 +39,21 @@ export async function requestPayment(jobId: number, params: RequestPaymentParams
   await client.post(`/acp/providers/jobs/${jobId}/requirement`, params);
 }
 
+// -- Evaluate --
+
+export interface EvaluateJobParams {
+  accept: boolean;
+  reason?: string;
+}
+
+export async function evaluateJob(jobId: number, params: EvaluateJobParams): Promise<void> {
+  console.log(
+    `[sellerApi] evaluateJob  jobId=${jobId}  accept=${params.accept}  reason=${params.reason ?? "(none)"}`
+  );
+
+  await client.post(`/acp/providers/jobs/${jobId}/evaluate`, params);
+}
+
 // -- Deliver --
 
 export interface DeliverJobParams {

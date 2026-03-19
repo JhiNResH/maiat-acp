@@ -8,7 +8,7 @@
 // =============================================================================
 
 import { connectAcpSocket } from "./acpSocket.js";
-import { acceptOrRejectJob, requestPayment, deliverJob } from "./sellerApi.js";
+import { acceptOrRejectJob, requestPayment, deliverJob, evaluateJob } from "./sellerApi.js";
 import { loadOffering, listOfferings } from "./offerings.js";
 import { AcpJobPhase, type AcpJobEventData } from "./types.js";
 import type { ExecuteJobResult } from "./offeringTypes.js";
@@ -22,6 +22,27 @@ import {
 } from "../../lib/eas.js";
 
 const MAIAT_REVIEW_URL = process.env.MAIAT_REVIEW_URL || "https://app.maiat.io/api/v1/review";
+const MAIAT_API_URL = process.env.MAIAT_API_URL || "https://app.maiat.io/api/v1";
+const MAIAT_EVALUATOR_MIN_SCORE = Number(process.env.MAIAT_EVALUATOR_MIN_SCORE || "30");
+const MAIAT_EVALUATOR_AUTO_APPROVE_SCORE = Number(
+  process.env.MAIAT_EVALUATOR_AUTO_APPROVE_SCORE || "80"
+);
+
+// Garbage deliverable patterns — too short or meaningless
+const GARBAGE_PATTERNS = new Set([
+  "hello",
+  "hi",
+  "test",
+  "ok",
+  "done",
+  "yes",
+  "no",
+  "{}",
+  "[]",
+  "null",
+  "undefined",
+  "none",
+]);
 
 /**
  * Post an automated behavioral review after successfully completing a job.
@@ -94,6 +115,180 @@ function setupCleanupHandlers(): void {
 const ACP_URL = process.env.ACP_SOCKET_URL || "https://acpx.virtuals.io";
 let agentDirName: string = "";
 let sellerWalletAddress: string = "";
+
+// -- Evaluator logic --
+
+interface TrustCheckResult {
+  score: number;
+  verdict: string;
+  completionRate?: number;
+  totalJobs?: number;
+}
+
+async function checkProviderTrust(address: string): Promise<TrustCheckResult> {
+  if (!address || !address.startsWith("0x")) {
+    return { score: 0, verdict: "unknown" };
+  }
+
+  try {
+    const resp = await fetch(`${MAIAT_API_URL}/agent/${address}`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = (await resp.json()) as Record<string, unknown>;
+    return {
+      score: (data.trustScore ?? data.score ?? 0) as number,
+      verdict: (data.verdict ?? "unknown") as string,
+      completionRate: data.completionRate as number | undefined,
+      totalJobs: data.totalJobs as number | undefined,
+    };
+  } catch (err) {
+    console.warn(`[evaluator] Trust check failed for ${address}:`, err);
+    return { score: 0, verdict: "unknown" };
+  }
+}
+
+function isGarbageDeliverable(deliverable: string): boolean {
+  if (!deliverable?.trim()) return true;
+  const cleaned = deliverable.trim();
+  if (cleaned.length < 20) return true;
+  if (GARBAGE_PATTERNS.has(cleaned.toLowerCase())) return true;
+  return false;
+}
+
+function extractDeliverable(data: AcpJobEventData): string {
+  // Find the COMPLETED memo (deliverable submission)
+  const completedMemo = data.memos.find((m) => m.nextPhase === AcpJobPhase.COMPLETED);
+  return completedMemo?.content ?? "";
+}
+
+async function handleEvaluate(data: AcpJobEventData): Promise<void> {
+  const jobId = data.id;
+
+  console.log(`\n${"=".repeat(60)}`);
+  console.log(
+    `[evaluator] Evaluating job ${jobId}  phase=${AcpJobPhase[data.phase] ?? data.phase}`
+  );
+  console.log(`            provider=${data.providerAddress}  client=${data.clientAddress}`);
+  console.log(`${"=".repeat(60)}`);
+
+  const deliverable = extractDeliverable(data);
+  const providerAddress = data.providerAddress;
+
+  // Step 1: Garbage check
+  if (isGarbageDeliverable(deliverable)) {
+    console.warn(`[evaluator] Job ${jobId}: Garbage deliverable — rejecting`);
+    await evaluateJob(jobId, {
+      accept: false,
+      reason: "Deliverable is empty or too short to be valid work",
+    });
+    await recordEvaluationOutcome(jobId, providerAddress, false, "garbage");
+    return;
+  }
+
+  // Step 2: Trust score check
+  const trust = await checkProviderTrust(providerAddress);
+  console.log(
+    `[evaluator] Job ${jobId}: Provider trust score=${trust.score} verdict=${trust.verdict}`
+  );
+
+  if (trust.verdict === "avoid" || trust.score < MAIAT_EVALUATOR_MIN_SCORE) {
+    console.warn(
+      `[evaluator] Job ${jobId}: Provider untrusted (score=${trust.score}, verdict=${trust.verdict}) — rejecting`
+    );
+    await evaluateJob(jobId, {
+      accept: false,
+      reason: `Provider trust too low: score=${trust.score}, verdict=${trust.verdict}`,
+    });
+    await recordEvaluationOutcome(jobId, providerAddress, false, "low_trust");
+    return;
+  }
+
+  // Step 3: Auto-approve trusted providers
+  if (trust.score >= MAIAT_EVALUATOR_AUTO_APPROVE_SCORE) {
+    console.log(`[evaluator] Job ${jobId}: Auto-approved (trusted provider, score=${trust.score})`);
+    await evaluateJob(jobId, {
+      accept: true,
+      reason: `Maiat-verified: trusted provider (score=${trust.score})`,
+    });
+    await recordEvaluationOutcome(jobId, providerAddress, true, "auto_approved");
+
+    // EAS attestation + Oracle update for evaluated jobs
+    await postEvaluationOnChain(deliverable, providerAddress, jobId);
+    return;
+  }
+
+  // Step 4: Moderate trust — approve with note
+  console.log(`[evaluator] Job ${jobId}: Approved with moderate trust (score=${trust.score})`);
+  await evaluateJob(jobId, {
+    accept: true,
+    reason: `Maiat-verified: moderate trust (score=${trust.score})`,
+  });
+  await recordEvaluationOutcome(jobId, providerAddress, true, "moderate_approved");
+  await postEvaluationOnChain(deliverable, providerAddress, jobId);
+}
+
+async function recordEvaluationOutcome(
+  jobId: number,
+  provider: string,
+  approved: boolean,
+  reason: string
+): Promise<void> {
+  try {
+    await fetch(`${MAIAT_API_URL}/outcome`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jobId: String(jobId),
+        provider,
+        approved,
+        reason,
+        source: "maiat-acp-evaluator",
+      }),
+    });
+  } catch {
+    // Best effort — don't block evaluation
+  }
+}
+
+async function postEvaluationOnChain(
+  deliverable: string,
+  providerAddress: string,
+  jobId: number
+): Promise<void> {
+  try {
+    const parsed = typeof deliverable === "string" ? JSON.parse(deliverable) : deliverable;
+    const score =
+      typeof parsed.score === "number"
+        ? parsed.score
+        : typeof parsed.trustScore === "number"
+          ? parsed.trustScore
+          : null;
+
+    if (score === null) return;
+
+    const attestData: AttestationData = {
+      agent: providerAddress as `0x${string}`,
+      score: Math.min(255, Math.max(0, Math.round(score))),
+      verdict: parsed.verdict || "unknown",
+      offering: "evaluator",
+      jobId,
+      riskSummary: parsed.riskSummary || "",
+    };
+
+    if (isEasEnabled()) {
+      await createAttestation(attestData).catch((err: Error) =>
+        console.error(`[evaluator] EAS attestation failed for job ${jobId}:`, err.message)
+      );
+    }
+
+    if (isOracleEnabled()) {
+      await updateOracle(attestData).catch((err: Error) =>
+        console.error(`[evaluator] Oracle update failed for job ${jobId}:`, err.message)
+      );
+    }
+  } catch {
+    // Deliverable may not be JSON with score — that's fine
+  }
+}
 
 // -- Job handling --
 
@@ -388,8 +583,8 @@ async function main() {
         );
       },
       onEvaluate: (data) => {
-        console.log(
-          `[seller] onEvaluate received for job ${data.id} — no action (evaluation handled externally)`
+        handleEvaluate(data).catch((err) =>
+          console.error(`[evaluator] Unhandled error evaluating job ${data.id}:`, err)
         );
       },
     },
