@@ -235,7 +235,14 @@ async function submitAttestation(
     return uid;
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
-    console.error(`[eas] Attestation failed: ${msg}`);
+    // Common: contract revert when schema UID is invalid or not registered
+    if (msg.includes("revert") || msg.includes("0xbf37b20e")) {
+      console.warn(
+        `[eas] Attestation reverted — schema may not be registered on ${EAS_CHAIN}. Skipping.`
+      );
+    } else {
+      console.error(`[eas] Attestation failed: ${msg}`);
+    }
     return null;
   }
 }

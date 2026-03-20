@@ -75,6 +75,11 @@ async function postAutoReview(
 
   if (!res.ok) {
     const text = await res.text();
+    // Non-critical: skip gracefully if address is unknown (not in Maiat DB yet)
+    if (res.status === 400 && text.includes("not a known agent")) {
+      console.log(`[seller] Auto-review skipped — ${clientAddress} not in Maiat DB (job ${jobId})`);
+      return;
+    }
     throw new Error(`Review API ${res.status}: ${text}`);
   }
 
